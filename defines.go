@@ -13,6 +13,11 @@ const (
 	ProgTitle      = "a slides tool for videos349"
 	WorkAreaWidth  = 1366
 	WorkAreaHeight = 768
+
+	TextTool     = 31
+	ImageTool    = 32
+	PencilTool   = 33
+	CanvasWidget = 39
 )
 
 var (
@@ -21,4 +26,12 @@ var (
 	ProjectName        string = "tmp_proj"
 	CurrentSlide       int
 	TotalSlides        int = 3
+	CanvasRect         g143.Rect
+	SlideFormat        map[int][]Drawn
+	activeTool         int
 )
+
+type Drawn struct {
+	Type      string // one of text, image, pencil
+	DetailsId int
+}

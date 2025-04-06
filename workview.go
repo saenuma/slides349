@@ -19,6 +19,15 @@ func DrawWorkView(window *glfw.Window, slide int) {
 	wWidth, wHeight := window.GetSize()
 	theCtx := New2dCtx(wWidth, wHeight, &ObjCoords)
 
+	// top panel
+	tTRS := theCtx.drawButtonB(TextTool, 50, 10, "Text", fontColor, "#D9D5B0", "#AEAC9C")
+	iTX := nextHorizontalX(tTRS, 20)
+	iTRS := theCtx.drawButtonB(ImageTool, iTX, 10, "Image", fontColor, "#D9D5B0", "#D9D5B0")
+	pTX := nextHorizontalX(iTRS, 20)
+	theCtx.drawButtonB(PencilTool, pTX, 10, "Pencil", fontColor, "#D9D5B0", "#D9D5B0")
+
+	activeTool = TextTool
+
 	// slides panel
 	currentY := 80
 	for i := range TotalSlides {
@@ -52,11 +61,71 @@ func DrawWorkView(window *glfw.Window, slide int) {
 		(WorkAreaHeight*0.8 - 2))
 	theCtx.ggCtx.Fill()
 
+	CanvasRect = g143.NewRect(workPanelX+1, 80+1, int(math.Ceil(WorkAreaWidth*0.8-2)),
+		int(math.Ceil(WorkAreaHeight*0.8-2)))
+
+	ObjCoords[CanvasWidget] = CanvasRect
 	// send the frame to glfw window
-	windowRS := g143.Rect{Width: wWidth, Height: wHeight, OriginX: 0, OriginY: 0}
-	g143.DrawImage(wWidth, wHeight, theCtx.ggCtx.Image(), windowRS)
+	g143.DrawImage(wWidth, wHeight, theCtx.ggCtx.Image(), theCtx.windowRect())
 	window.SwapBuffers()
 
 	// save the frame
 	CurrentWindowFrame = theCtx.ggCtx.Image()
+}
+
+func workViewMouseCallback(window *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
+	if action != glfw.Release {
+		return
+	}
+
+	xPos, yPos := window.GetCursorPos()
+	xPosInt := int(xPos)
+	yPosInt := int(yPos)
+
+	wWidth, wHeight := window.GetSize()
+
+	var widgetCode int
+
+	for code, RS := range ObjCoords {
+		if g143.InRect(RS, xPosInt, yPosInt) {
+			// widgetRS = RS
+			widgetCode = code
+			break
+		}
+	}
+
+	if widgetCode == 0 {
+		return
+	}
+
+	// rootPath, _ := GetRootPath()
+
+	switch widgetCode {
+	case TextTool, ImageTool, PencilTool:
+		activeTool = widgetCode
+
+		theCtx := Continue2dCtx(CurrentWindowFrame, &ObjCoords)
+		toolNames := map[int]string{
+			TextTool: "Text", ImageTool: "Image", PencilTool: "Pencil",
+		}
+		// clear all tools
+		for _, toolId := range []int{TextTool, ImageTool, PencilTool} {
+			toolRS := ObjCoords[toolId]
+			theCtx.drawButtonB(toolId, toolRS.OriginX, toolRS.OriginY, toolNames[toolId],
+				fontColor, "#D9D5B0", "#D9D5B0")
+		}
+		// place indicator on activeTool
+		activeToolRS := ObjCoords[activeTool]
+		theCtx.drawButtonB(activeTool, activeToolRS.OriginX, activeToolRS.OriginY, toolNames[activeTool],
+			fontColor, "#D9D5B0", "#AEAC9C")
+
+		// send the frame to glfw window
+		g143.DrawImage(wWidth, wHeight, theCtx.ggCtx.Image(), theCtx.windowRect())
+		window.SwapBuffers()
+
+		// save the frame
+		CurrentWindowFrame = theCtx.ggCtx.Image()
+
+	}
+
 }

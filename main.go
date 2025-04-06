@@ -24,8 +24,8 @@ func main() {
 	window := g143.NewWindow(1400, 800, ProgTitle, false)
 	DrawWorkView(window, 1)
 
-	// // respond to the mouse
-	// window.SetMouseButtonCallback(projViewMouseCallback)
+	// respond to the mouse
+	window.SetMouseButtonCallback(workViewMouseCallback)
 	// // respond to the keyboard
 	// window.SetKeyCallback(ProjKeyCallback)
 	// // save the project file
