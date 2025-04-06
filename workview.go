@@ -19,6 +19,7 @@ func DrawWorkView(window *glfw.Window, slide int) {
 	wWidth, wHeight := window.GetSize()
 	theCtx := New2dCtx(wWidth, wHeight, &ObjCoords)
 
+	// slides panel
 	currentY := 80
 	for i := range TotalSlides {
 		iInUse := i + 1
@@ -29,13 +30,27 @@ func DrawWorkView(window *glfw.Window, slide int) {
 		theCtx.ggCtx.DrawRoundedRectangle(float64(10+FontSize+5), float64(currentY), WorkAreaWidth*0.15, WorkAreaHeight*0.15, 10)
 		theCtx.ggCtx.Fill()
 
+		if i == 0 {
+		}
 		theCtx.ggCtx.SetHexColor("#fff")
-		theCtx.ggCtx.DrawRoundedRectangle(float64(10+FontSize+5)+2, float64(currentY)+2, (WorkAreaWidth*0.15 - 4),
-			(WorkAreaHeight*0.15 - 4), 10)
+		theCtx.ggCtx.DrawRoundedRectangle(float64(10+FontSize+5)+1, float64(currentY)+1, (WorkAreaWidth*0.15 - 2),
+			(WorkAreaHeight*0.15 - 2), 10)
 		theCtx.ggCtx.Fill()
 
 		currentY += 10 + int(math.Ceil(WorkAreaHeight*0.15))
 	}
+
+	// work panel
+	workPanelX := int(math.Ceil(WorkAreaWidth*0.15)) + 10 + FontSize + 5 + 20
+
+	theCtx.ggCtx.SetHexColor(fontColor)
+	theCtx.ggCtx.DrawRectangle(float64(workPanelX), 80, WorkAreaWidth*0.8, WorkAreaHeight*0.8)
+	theCtx.ggCtx.Fill()
+
+	theCtx.ggCtx.SetHexColor("#fff")
+	theCtx.ggCtx.DrawRectangle(float64(workPanelX+1), 80+1, (WorkAreaWidth*0.8 - 2),
+		(WorkAreaHeight*0.8 - 2))
+	theCtx.ggCtx.Fill()
 
 	// send the frame to glfw window
 	windowRS := g143.Rect{Width: wWidth, Height: wHeight, OriginX: 0, OriginY: 0}
