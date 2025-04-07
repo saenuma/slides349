@@ -17,7 +17,13 @@ const (
 	TextTool     = 31
 	ImageTool    = 32
 	PencilTool   = 33
+	SelectTool   = 34
+	MoveTool     = 35
 	CanvasWidget = 39
+
+	TextColorTool = 312
+	MinusSizeTool = 314
+	PlusSizeTool  = 315
 )
 
 var (
@@ -27,11 +33,43 @@ var (
 	CurrentSlide       int
 	TotalSlides        int = 3
 	CanvasRect         g143.Rect
-	SlideFormat        map[int][]Drawn
 	activeTool         int
+
+	SlideFormat  map[int][]Drawn
+	TextDetails  []TextDetail  = make([]TextDetail, 0)
+	ImageDetails []ImageDetail = make([]ImageDetail, 0)
+
+	activeX          int
+	activeY          int
+	currentTextColor = fontColor
+
+	InTPickerChannel  = make(chan string)
+	TextFromTPicker   string
+	ClearAfterTPicker bool
+)
+
+type TextDetail struct {
+	Text  string
+	Color string
+	Size  int
+}
+
+type ImageDetail struct {
+	Image string // a path
+	Size  int
+}
+
+type DrawnType int
+
+const (
+	TextType DrawnType = iota
+	ImageType
+	PencilType
 )
 
 type Drawn struct {
-	Type      string // one of text, image, pencil
+	Type      DrawnType //
+	X         int
+	Y         int
 	DetailsId int
 }

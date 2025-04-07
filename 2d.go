@@ -50,25 +50,7 @@ func Continue2dCtx(img image.Image, objCoords *map[int]g143.Rect) Ctx {
 	return ctx
 }
 
-func (ctx *Ctx) drawButtonA(btnId, originX, originY int, text, textColor, bgColor string) g143.Rect {
-	// draw bounding rect
-	textW, textH := ctx.ggCtx.MeasureString(text)
-	width, height := textW+20, textH+15
-	ctx.ggCtx.SetHexColor(bgColor)
-	ctx.ggCtx.DrawRectangle(float64(originX), float64(originY), float64(width), float64(height))
-	ctx.ggCtx.Fill()
-
-	// draw text
-	ctx.ggCtx.SetHexColor(textColor)
-	ctx.ggCtx.DrawString(text, float64(originX)+10, float64(originY)+FontSize)
-
-	// save dimensions
-	btnARect := g143.NewRect(originX, originY, int(width), int(height))
-	(*ctx.ObjCoords)[btnId] = btnARect
-	return btnARect
-}
-
-func (ctx *Ctx) drawButtonB(btnId, originX, originY int, text, textColor, bgColor, circleColor string) g143.Rect {
+func (ctx *Ctx) drawButtonA(btnId, originX, originY int, text, textColor, bgColor, circleColor string) g143.Rect {
 	// draw bounding rect
 	textW, textH := ctx.ggCtx.MeasureString(text)
 	width, height := textW+80, textH+30
@@ -91,40 +73,39 @@ func (ctx *Ctx) drawButtonB(btnId, originX, originY int, text, textColor, bgColo
 	return btnARect
 }
 
-func (ctx *Ctx) drawButtonC(btnId, originX, originY int, bgColor string) g143.Rect {
+func (ctx *Ctx) drawButtonB(btnId, originX, originY int, text, textColor, bgColor string) g143.Rect {
 	// draw bounding rect
-	width, height := FontSize, FontSize
+	textW, textH := ctx.ggCtx.MeasureString(text)
+	width, height := textW+20, textH+15
 	ctx.ggCtx.SetHexColor(bgColor)
-	ctx.ggCtx.DrawRectangle(float64(originX), float64(originY)+2, float64(width), float64(height))
+	ctx.ggCtx.DrawRectangle(float64(originX), float64(originY), float64(width), float64(height))
 	ctx.ggCtx.Fill()
+
+	// draw text
+	ctx.ggCtx.SetHexColor(textColor)
+	ctx.ggCtx.DrawString(text, float64(originX)+10, float64(originY)+FontSize)
 
 	// save dimensions
 	btnARect := g143.NewRect(originX, originY, int(width), int(height))
-	(*ctx.ObjCoords)[btnId] = btnARect
+	if btnId != 0 {
+		(*ctx.ObjCoords)[btnId] = btnARect
+	}
 	return btnARect
 }
 
-func (ctx *Ctx) drawInput(inputId, originX, originY, inputWidth int, placeholder string, isDefault bool) g143.Rect {
-	height := 30
-	ctx.ggCtx.SetHexColor(fontColor)
-	ctx.ggCtx.DrawRectangle(float64(originX), float64(originY), float64(inputWidth), float64(height))
+func (ctx *Ctx) drawColorBox(inputId, originX, originY, width int, pickedColor string) g143.Rect {
+	ctx.ggCtx.SetHexColor("#000")
+	ctx.ggCtx.DrawRectangle(float64(originX), float64(originY), float64(width), float64(width))
 	ctx.ggCtx.Fill()
 
-	ctx.ggCtx.SetHexColor("#fff")
-	ctx.ggCtx.DrawRectangle(float64(originX)+2, float64(originY)+2, float64(inputWidth)-4, float64(height)-4)
+	ctx.ggCtx.SetHexColor(pickedColor)
+	ctx.ggCtx.DrawRectangle(float64(originX)+2, float64(originY)+2, float64(width)-4, float64(width)-4)
 	ctx.ggCtx.Fill()
 
-	entryRect := g143.Rect{Width: inputWidth, Height: height, OriginX: originX, OriginY: originY}
-	(*ctx.ObjCoords)[inputId] = entryRect
+	colorBoxRect := g143.NewRect(originX, originY, width, width)
+	(*ctx.ObjCoords)[inputId] = colorBoxRect
 
-	if isDefault {
-		ctx.ggCtx.SetHexColor("#444")
-		ctx.ggCtx.DrawString(placeholder, float64(originX+15), float64(originY)+FontSize)
-	} else {
-		ctx.ggCtx.SetHexColor("#aaa")
-		ctx.ggCtx.DrawString(placeholder, float64(originX+15), float64(originY)+FontSize)
-	}
-	return entryRect
+	return colorBoxRect
 }
 
 func (ctx *Ctx) windowRect() g143.Rect {
