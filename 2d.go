@@ -50,6 +50,15 @@ func Continue2dCtx(img image.Image, objCoords *map[int]g143.Rect) Ctx {
 	return ctx
 }
 
+func (ctx *Ctx) setFontSize(fontSize float64) {
+	// load font
+	fontPath := GetDefaultFontPath()
+	err := ctx.ggCtx.LoadFontFace(fontPath, fontSize)
+	if err != nil {
+		panic(err)
+	}
+}
+
 func (ctx *Ctx) drawButtonA(btnId, originX, originY int, text, textColor, bgColor, circleColor string) g143.Rect {
 	// draw bounding rect
 	textW, textH := ctx.ggCtx.MeasureString(text)
@@ -106,6 +115,24 @@ func (ctx *Ctx) drawColorBox(inputId, originX, originY, width int, pickedColor s
 	(*ctx.ObjCoords)[inputId] = colorBoxRect
 
 	return colorBoxRect
+}
+
+func (ctx *Ctx) drawInput(inputId, originX, originY int, writtenStr string) g143.Rect {
+
+	ctx.ggCtx.SetHexColor("#fff")
+	ctx.ggCtx.DrawRectangle(float64(originX), float64(originY), 40, float64(originY)+FontSize+5)
+	ctx.ggCtx.Fill()
+
+	ctx.ggCtx.SetHexColor("#909BD0")
+	ctx.ggCtx.DrawRectangle(float64(originX), 50, 40, 3)
+	ctx.ggCtx.Fill()
+
+	entryRect := g143.Rect{Width: 40, Height: 50, OriginX: originX, OriginY: 10}
+	(*ctx.ObjCoords)[inputId] = entryRect
+
+	ctx.ggCtx.SetHexColor("#444")
+	ctx.ggCtx.DrawString(writtenStr, float64(originX+5), float64(originY)+FontSize+5)
+	return entryRect
 }
 
 func (ctx *Ctx) windowRect() g143.Rect {

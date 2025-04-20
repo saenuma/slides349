@@ -54,3 +54,17 @@ func pickText(inStr string) string {
 
 	return strings.TrimSpace(string(out))
 }
+
+func pickColor() string {
+	aCPickerPath := GetExecPath("acpicker")
+
+	cmd := exec.Command(aCPickerPath)
+
+	out, err := cmd.Output()
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+
+	return strings.TrimSpace(string(out))
+}

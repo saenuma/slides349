@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"time"
 
 	g143 "github.com/bankole7782/graphics143"
@@ -16,7 +17,13 @@ func main() {
 		panic(err)
 	}
 
+	// initialize
 	SlideFormat = make(map[int][]Drawn)
+	SlideMemory = make(map[int]map[string]string)
+	SlideMemory[1] = map[string]string{
+		"color": "#444",
+		"size":  "1",
+	}
 
 	outPath := filepath.Join(rootPath, "slides")
 	os.MkdirAll(outPath, 0777)
@@ -25,9 +32,14 @@ func main() {
 
 	go func() {
 		for {
-			inStr := <-InTPickerChannel
-			TextFromTPicker = pickText(inStr)
-			ClearAfterTPicker = true
+			aSlice := <-PickerChan
+			if aSlice[0] == "text" {
+				TextFromTPicker = pickText(aSlice[1])
+				ClearAfterTPicker = true
+			} else if aSlice[0] == "color" {
+				TextFromACPicker = pickColor()
+				ClearAFterACPicker = true
+			}
 		}
 	}()
 
@@ -49,15 +61,9 @@ func main() {
 
 		if ClearAfterTPicker {
 			if len(TextFromTPicker) > 0 {
-				// if isUpdateDialog {
-				// 	oldComment := comments[commentIndexBeingUpdated]
-				// 	comments[commentIndexBeingUpdated] = Comment{oldComment.X, oldComment.Y, TextFromTPicker}
-				// 	isUpdateDialog = false
-				// 	commentIndexBeingUpdated = 0
-				// } else {
-				// 	comments = append(comments, Comment{activeX, activeY, TextFromTPicker})
-				// }
-				textDetail := TextDetail{TextFromTPicker, currentTextColor, 1}
+				size := SlideMemory[CurrentSlide]["size"]
+				sizeInt, _ := strconv.Atoi(size)
+				textDetail := TextDetail{TextFromTPicker, SlideMemory[CurrentSlide]["color"], sizeInt}
 				TextDetails = append(TextDetails, textDetail)
 				drawn := Drawn{Type: TextType, X: activeX, Y: activeY, DetailsId: len(TextDetails) - 1}
 				objs := SlideFormat[CurrentSlide]
@@ -71,6 +77,16 @@ func main() {
 			// window.SetCursorPosCallback(getHoverCB(objCoords))
 
 			ClearAfterTPicker = false
+		}
+
+		if ClearAFterACPicker {
+			SlideMemory[CurrentSlide]["color"] = TextFromACPicker
+			TextFromACPicker = ""
+
+			DrawWorkView(window, CurrentSlide)
+			window.SetMouseButtonCallback(workViewMouseCallback)
+
+			ClearAFterACPicker = false
 		}
 
 		time.Sleep(time.Second/time.Duration(FPS) - time.Since(t))

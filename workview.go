@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math"
+	"strconv"
 	"strings"
 
 	g143 "github.com/bankole7782/graphics143"
@@ -36,11 +37,16 @@ func DrawWorkView(window *glfw.Window, slide int) {
 	theCtx.ggCtx.Fill()
 
 	// pencil extras
-	mSRS := theCtx.drawButtonB(MinusSizeTool, dividerX+20, 10+5, "-", "#fff", "#aaa")
-	pSX := nextHorizontalX(mSRS, 20)
+	mSRS := theCtx.drawButtonB(MinusSizeTool, dividerX+20, 10+5, "--", "#fff", "#aaa")
+	tSIX := nextHorizontalX(mSRS, 5)
+
+	size := SlideMemory[CurrentSlide]["size"]
+	tSIRS := theCtx.drawInput(DrawnSizeInput, tSIX, 10, size)
+	pSX := nextHorizontalX(tSIRS, 5)
 	pSRS := theCtx.drawButtonB(PlusSizeTool, pSX, 10+5, "+", "#fff", "#aaa")
 	tCX := nextHorizontalX(pSRS, 20)
-	theCtx.drawColorBox(TextColorTool, tCX, 10+5, tTRS.Height-15, fontColor)
+	selectedColor := SlideMemory[CurrentSlide]["color"]
+	theCtx.drawColorBox(TextColorTool, tCX, 10+5, tTRS.Height-15, selectedColor)
 
 	activeTool = TextTool
 
@@ -52,12 +58,12 @@ func DrawWorkView(window *glfw.Window, slide int) {
 		theCtx.ggCtx.DrawString(fmt.Sprintf("%d", iInUse), 10, float64(currentY+FontSize))
 
 		theCtx.ggCtx.SetHexColor(fontColor)
-		theCtx.ggCtx.DrawRoundedRectangle(float64(10+FontSize+5), float64(currentY), WorkAreaWidth*0.15, WorkAreaHeight*0.15, 10)
+		theCtx.ggCtx.DrawRectangle(float64(10+FontSize+5), float64(currentY), WorkAreaWidth*0.15, WorkAreaHeight*0.15)
 		theCtx.ggCtx.Fill()
 
 		theCtx.ggCtx.SetHexColor("#fff")
-		theCtx.ggCtx.DrawRoundedRectangle(float64(10+FontSize+5)+1, float64(currentY)+1, (WorkAreaWidth*0.15 - 2),
-			(WorkAreaHeight*0.15 - 2), 10)
+		theCtx.ggCtx.DrawRectangle(float64(10+FontSize+5)+1, float64(currentY)+1, (WorkAreaWidth*0.15 - 2),
+			(WorkAreaHeight*0.15 - 2))
 		theCtx.ggCtx.Fill()
 
 		currentY += 10 + int(math.Ceil(WorkAreaHeight*0.15))
@@ -83,12 +89,17 @@ func DrawWorkView(window *glfw.Window, slide int) {
 		if obj.Type == TextType {
 			textDetail := TextDetails[obj.DetailsId]
 			strs := strings.Split(strings.ReplaceAll(textDetail.Text, "\r", ""), "\n")
+			textFontSize := float64(textDetail.Size) * 0.5 * 30
+			textFontSizeInt := int(math.Ceil(textFontSize))
+			theCtx.setFontSize(textFontSize)
+
 			for j, str := range strs {
 				theCtx.ggCtx.SetHexColor(textDetail.Color)
 				theCtx.ggCtx.DrawString(str, float64(obj.X+canvasX),
-					float64(obj.Y+CanvasRect.OriginY+10+((j+1)*FontSize)))
-				currentY += FontSize + 5
+					float64(obj.Y+CanvasRect.OriginY+10+((j+1)*textFontSizeInt)))
+				currentY += textFontSizeInt + 5
 			}
+			theCtx.setFontSize(FontSize)
 		} else if obj.Type == ImageType {
 
 		} else if obj.Type == PencilType {
@@ -171,9 +182,49 @@ func workViewMouseCallback(window *glfw.Window, button glfw.MouseButton, action 
 			activeX, activeY = int(translastedMouseX), int(translatedMouseY)
 			window.SetMouseButtonCallback(nil)
 			window.SetCursorPosCallback(nil)
-			InTPickerChannel <- ""
+			PickerChan <- []string{"text", ""}
 		}
 
+	case PlusSizeTool:
+		size := SlideMemory[CurrentSlide]["size"]
+		sizeInt, _ := strconv.Atoi(size)
+		if sizeInt != 10 {
+			sizeInt += 1
+		}
+		theCtx := Continue2dCtx(CurrentWindowFrame, &ObjCoords)
+		widgetRS := ObjCoords[DrawnSizeInput]
+		theCtx.drawInput(DrawnSizeInput, widgetRS.OriginX, widgetRS.OriginY, size)
+
+		SlideMemory[CurrentSlide]["size"] = strconv.Itoa(sizeInt)
+		// send the frame to glfw window
+		g143.DrawImage(wWidth, wHeight, theCtx.ggCtx.Image(), theCtx.windowRect())
+		window.SwapBuffers()
+
+		// save the frame
+		CurrentWindowFrame = theCtx.ggCtx.Image()
+
+	case MinusSizeTool:
+		size := SlideMemory[CurrentSlide]["size"]
+		sizeInt, _ := strconv.Atoi(size)
+		if sizeInt != 1 {
+			sizeInt -= 1
+		}
+		theCtx := Continue2dCtx(CurrentWindowFrame, &ObjCoords)
+		widgetRS := ObjCoords[DrawnSizeInput]
+		theCtx.drawInput(DrawnSizeInput, widgetRS.OriginX, widgetRS.OriginY, size)
+
+		SlideMemory[CurrentSlide]["size"] = strconv.Itoa(sizeInt)
+		// send the frame to glfw window
+		g143.DrawImage(wWidth, wHeight, theCtx.ggCtx.Image(), theCtx.windowRect())
+		window.SwapBuffers()
+
+		// save the frame
+		CurrentWindowFrame = theCtx.ggCtx.Image()
+
+	case TextColorTool:
+		window.SetMouseButtonCallback(nil)
+		window.SetCursorPosCallback(nil)
+		PickerChan <- []string{"color", ""}
 	}
 
 }

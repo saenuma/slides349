@@ -21,9 +21,10 @@ const (
 	MoveTool     = 35
 	CanvasWidget = 39
 
-	TextColorTool = 312
-	MinusSizeTool = 314
-	PlusSizeTool  = 315
+	TextColorTool  = 312
+	MinusSizeTool  = 314
+	PlusSizeTool   = 315
+	DrawnSizeInput = 316
 )
 
 var (
@@ -39,13 +40,17 @@ var (
 	TextDetails  []TextDetail  = make([]TextDetail, 0)
 	ImageDetails []ImageDetail = make([]ImageDetail, 0)
 
-	activeX          int
-	activeY          int
-	currentTextColor = fontColor
+	SlideMemory map[int]map[string]string
 
-	InTPickerChannel  = make(chan string)
+	activeX int
+	activeY int
+
+	PickerChan        = make(chan []string) // 0:instr, 1:data
 	TextFromTPicker   string
 	ClearAfterTPicker bool
+
+	TextFromACPicker   string
+	ClearAFterACPicker bool
 )
 
 type TextDetail struct {
