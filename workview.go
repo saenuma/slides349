@@ -2,12 +2,15 @@ package main
 
 import (
 	"fmt"
+	"image"
 	"math"
 	"strconv"
 	"strings"
 
 	g143 "github.com/bankole7782/graphics143"
+	"github.com/fogleman/gg"
 	"github.com/go-gl/glfw/v3.3/glfw"
+	"github.com/kovidgoyal/imaging"
 )
 
 func DrawWorkView(window *glfw.Window, slide int) {
@@ -76,36 +79,11 @@ func DrawWorkView(window *glfw.Window, slide int) {
 	theCtx.ggCtx.DrawRectangle(float64(canvasX), 80, WorkAreaWidth*0.8, WorkAreaHeight*0.8)
 	theCtx.ggCtx.Fill()
 
-	theCtx.ggCtx.SetHexColor("#fff")
-	theCtx.ggCtx.DrawRectangle(float64(canvasX+1), 80+1, (WorkAreaWidth*0.8 - 2),
-		(WorkAreaHeight*0.8 - 2))
-	theCtx.ggCtx.Fill()
-
-	CanvasRect = g143.NewRect(canvasX+1, 80+1, int(math.Ceil(WorkAreaWidth*0.8-2)),
-		int(math.Ceil(WorkAreaHeight*0.8-2)))
-
-	// draw contents of SlideFormat to canvas
-	for _, obj := range SlideFormat[CurrentSlide] {
-		if obj.Type == TextType {
-			textDetail := TextDetails[obj.DetailsId]
-			strs := strings.Split(strings.ReplaceAll(textDetail.Text, "\r", ""), "\n")
-			textFontSize := float64(textDetail.Size) * 0.5 * 30
-			textFontSizeInt := int(math.Ceil(textFontSize))
-			theCtx.setFontSize(textFontSize)
-
-			for j, str := range strs {
-				theCtx.ggCtx.SetHexColor(textDetail.Color)
-				theCtx.ggCtx.DrawString(str, float64(obj.X+canvasX),
-					float64(obj.Y+CanvasRect.OriginY+10+((j+1)*textFontSizeInt)))
-				currentY += textFontSizeInt + 5
-			}
-			theCtx.setFontSize(FontSize)
-		} else if obj.Type == ImageType {
-
-		} else if obj.Type == PencilType {
-
-		}
-	}
+	nWAW, nWAH := int(math.Ceil(WorkAreaWidth*0.8-2)), int(math.Ceil(WorkAreaHeight*0.8-2))
+	canvasImg := drawOnCanvas()
+	canvasImg = imaging.Fit(canvasImg, nWAW, nWAH, imaging.Lanczos)
+	theCtx.ggCtx.DrawImage(canvasImg, canvasX+1, 80+1)
+	CanvasRect = g143.NewRect(canvasX+1, 80+1, nWAW, nWAH)
 
 	ObjCoords[CanvasWidget] = CanvasRect
 	// send the frame to glfw window
@@ -114,6 +92,43 @@ func DrawWorkView(window *glfw.Window, slide int) {
 
 	// save the frame
 	CurrentWindowFrame = theCtx.ggCtx.Image()
+}
+
+func drawOnCanvas() image.Image {
+	// frame buffer
+	ggCtx := gg.NewContext(WorkAreaWidth, WorkAreaHeight)
+
+	// background rectangle
+	ggCtx.DrawRectangle(0, 0, float64(WorkAreaWidth), float64(WorkAreaHeight))
+	ggCtx.SetHexColor("#ffffff")
+	ggCtx.Fill()
+
+	// load font
+	fontPath := GetDefaultFontPath()
+	ggCtx.LoadFontFace(fontPath, 20)
+
+	currentY := 0
+	for _, obj := range SlideFormat[CurrentSlide] {
+		if obj.Type == TextType {
+			textDetail := TextDetails[obj.DetailsId]
+			strs := strings.Split(strings.ReplaceAll(textDetail.Text, "\r", ""), "\n")
+			textFontSize := float64(textDetail.Size) * 0.5 * 30
+			textFontSizeInt := int(math.Ceil(textFontSize))
+			ggCtx.LoadFontFace(fontPath, textFontSize)
+
+			for j, str := range strs {
+				ggCtx.SetHexColor(textDetail.Color)
+				ggCtx.DrawString(str, float64(obj.X), float64(obj.Y+10+((j+1)*textFontSizeInt)))
+				currentY += textFontSizeInt + 5
+			}
+		} else if obj.Type == ImageType {
+
+		} else if obj.Type == PencilType {
+
+		}
+	}
+
+	return ggCtx.Image()
 }
 
 func workViewMouseCallback(window *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {

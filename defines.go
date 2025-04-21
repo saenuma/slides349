@@ -40,7 +40,9 @@ var (
 	TextDetails  []TextDetail  = make([]TextDetail, 0)
 	ImageDetails []ImageDetail = make([]ImageDetail, 0)
 
-	SlideMemory map[int]map[string]string
+	SlideMemory     map[int]map[string]string
+	SlidePreview    map[int]map[string]*image.Image
+	CurrentSlideImg image.Image
 
 	activeX int
 	activeY int

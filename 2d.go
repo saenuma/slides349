@@ -25,7 +25,7 @@ func New2dCtx(wWidth, wHeight int, objCoords *map[int]g143.Rect) Ctx {
 
 	// load font
 	fontPath := GetDefaultFontPath()
-	err := ggCtx.LoadFontFace(fontPath, 20)
+	err := ggCtx.LoadFontFace(fontPath, FontSize)
 	if err != nil {
 		panic(err)
 	}
@@ -40,7 +40,7 @@ func Continue2dCtx(img image.Image, objCoords *map[int]g143.Rect) Ctx {
 
 	// load font
 	fontPath := GetDefaultFontPath()
-	err := ggCtx.LoadFontFace(fontPath, 20)
+	err := ggCtx.LoadFontFace(fontPath, FontSize)
 	if err != nil {
 		panic(err)
 	}
@@ -48,15 +48,6 @@ func Continue2dCtx(img image.Image, objCoords *map[int]g143.Rect) Ctx {
 	ctx := Ctx{WindowWidth: img.Bounds().Dx(), WindowHeight: img.Bounds().Dy(), ggCtx: ggCtx,
 		ObjCoords: objCoords}
 	return ctx
-}
-
-func (ctx *Ctx) setFontSize(fontSize float64) {
-	// load font
-	fontPath := GetDefaultFontPath()
-	err := ctx.ggCtx.LoadFontFace(fontPath, fontSize)
-	if err != nil {
-		panic(err)
-	}
 }
 
 func (ctx *Ctx) drawButtonA(btnId, originX, originY int, text, textColor, bgColor, circleColor string) g143.Rect {
