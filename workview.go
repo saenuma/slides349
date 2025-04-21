@@ -107,20 +107,30 @@ func drawOnCanvas() image.Image {
 	fontPath := GetDefaultFontPath()
 	ggCtx.LoadFontFace(fontPath, 20)
 
-	currentY := 0
-	for _, obj := range SlideFormat[CurrentSlide] {
+	for i, obj := range SlideFormat[CurrentSlide] {
 		if obj.Type == TextType {
 			textDetail := TextDetails[obj.DetailsId]
 			strs := strings.Split(strings.ReplaceAll(textDetail.Text, "\r", ""), "\n")
-			textFontSize := float64(textDetail.Size) * 0.5 * 30
+			textFontSize := float64(textDetail.Size) * 15
 			textFontSizeInt := int(math.Ceil(textFontSize))
 			ggCtx.LoadFontFace(fontPath, textFontSize)
 
-			for j, str := range strs {
+			maxX := 0
+			currentY := obj.Y + textFontSizeInt
+			for _, str := range strs {
+				strW, _ := ggCtx.MeasureString(str)
+				if int(strW) > maxX {
+					maxX = int(strW)
+				}
 				ggCtx.SetHexColor(textDetail.Color)
-				ggCtx.DrawString(str, float64(obj.X), float64(obj.Y+10+((j+1)*textFontSizeInt)))
-				currentY += textFontSizeInt + 5
+				ggCtx.DrawString(str, float64(obj.X), float64(currentY))
+				currentY += 10 + textFontSizeInt
 			}
+
+			obj.W = maxX
+			obj.H = currentY - obj.Y
+			SlideFormat[CurrentSlide][i] = obj
+
 		} else if obj.Type == ImageType {
 
 		} else if obj.Type == PencilType {
@@ -195,9 +205,34 @@ func workViewMouseCallback(window *glfw.Window, button glfw.MouseButton, action 
 		if activeTool == TextTool && ctrlState == glfw.Release {
 
 			activeX, activeY = int(translastedMouseX), int(translatedMouseY)
+
 			window.SetMouseButtonCallback(nil)
 			window.SetCursorPosCallback(nil)
-			PickerChan <- []string{"text", ""}
+
+			fmt.Println("len of objs : ", len(SlideFormat[CurrentSlide]))
+			var foundDrawnText TextDetail
+			found := -1
+			fmt.Println("x: ", activeX, "y : ", activeY)
+			for i, obj := range SlideFormat[CurrentSlide] {
+				if obj.Type != TextType {
+					continue
+				}
+				fmt.Printf("obj : %+v\n", obj)
+				objRect := g143.NewRect(obj.X, obj.Y, obj.W, obj.H)
+				if g143.InRect(objRect, activeX, activeY) {
+					foundDrawnText = TextDetails[obj.DetailsId]
+					found = i
+					break
+				}
+			}
+
+			fmt.Println("found: ", found)
+			if found != -1 {
+				DrawnEditIndex = found
+				PickerChan <- []string{"text", foundDrawnText.Text}
+			} else {
+				PickerChan <- []string{"text", ""}
+			}
 		}
 
 	case PlusSizeTool:
@@ -206,9 +241,10 @@ func workViewMouseCallback(window *glfw.Window, button glfw.MouseButton, action 
 		if sizeInt != 10 {
 			sizeInt += 1
 		}
+
 		theCtx := Continue2dCtx(CurrentWindowFrame, &ObjCoords)
 		widgetRS := ObjCoords[DrawnSizeInput]
-		theCtx.drawInput(DrawnSizeInput, widgetRS.OriginX, widgetRS.OriginY, size)
+		theCtx.drawInput(DrawnSizeInput, widgetRS.OriginX, widgetRS.OriginY, strconv.Itoa(sizeInt))
 
 		SlideMemory[CurrentSlide]["size"] = strconv.Itoa(sizeInt)
 		// send the frame to glfw window
@@ -226,7 +262,7 @@ func workViewMouseCallback(window *glfw.Window, button glfw.MouseButton, action 
 		}
 		theCtx := Continue2dCtx(CurrentWindowFrame, &ObjCoords)
 		widgetRS := ObjCoords[DrawnSizeInput]
-		theCtx.drawInput(DrawnSizeInput, widgetRS.OriginX, widgetRS.OriginY, size)
+		theCtx.drawInput(DrawnSizeInput, widgetRS.OriginX, widgetRS.OriginY, strconv.Itoa(sizeInt))
 
 		SlideMemory[CurrentSlide]["size"] = strconv.Itoa(sizeInt)
 		// send the frame to glfw window

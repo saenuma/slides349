@@ -44,6 +44,8 @@ var (
 	SlidePreview    map[int]map[string]*image.Image
 	CurrentSlideImg image.Image
 
+	DrawnEditIndex int = -1
+
 	activeX int
 	activeY int
 
@@ -75,8 +77,8 @@ const (
 )
 
 type Drawn struct {
-	Type      DrawnType //
-	X         int
-	Y         int
+	Type      DrawnType
+	X, Y      int
+	W, H      int
 	DetailsId int
 }

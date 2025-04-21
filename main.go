@@ -63,11 +63,19 @@ func main() {
 			if len(TextFromTPicker) > 0 {
 				size := SlideMemory[CurrentSlide]["size"]
 				sizeInt, _ := strconv.Atoi(size)
-				textDetail := TextDetail{TextFromTPicker, SlideMemory[CurrentSlide]["color"], sizeInt}
-				TextDetails = append(TextDetails, textDetail)
-				drawn := Drawn{Type: TextType, X: activeX, Y: activeY, DetailsId: len(TextDetails) - 1}
-				objs := SlideFormat[CurrentSlide]
-				SlideFormat[CurrentSlide] = append(objs, drawn)
+
+				if DrawnEditIndex != -1 {
+					textDetail := TextDetail{TextFromTPicker, SlideMemory[CurrentSlide]["color"], sizeInt}
+					drawnTextObj := SlideFormat[CurrentSlide][DrawnEditIndex]
+					TextDetails[drawnTextObj.DetailsId] = textDetail
+					DrawnEditIndex = -1
+				} else {
+					textDetail := TextDetail{TextFromTPicker, SlideMemory[CurrentSlide]["color"], sizeInt}
+					TextDetails = append(TextDetails, textDetail)
+					drawn := Drawn{Type: TextType, X: activeX, Y: activeY, DetailsId: len(TextDetails) - 1}
+					objs := SlideFormat[CurrentSlide]
+					SlideFormat[CurrentSlide] = append(objs, drawn)
+				}
 			}
 			TextFromTPicker = ""
 			activeX, activeY = -1, -1
