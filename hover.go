@@ -5,9 +5,9 @@ import (
 	"runtime"
 
 	g143 "github.com/bankole7782/graphics143"
-	"github.com/kovidgoyal/imaging"	
 	"github.com/fogleman/gg"
 	"github.com/go-gl/glfw/v3.3/glfw"
+	"github.com/kovidgoyal/imaging"
 )
 
 func getHoverCB(state *map[int]g143.Rect) glfw.CursorPosCallback {
@@ -50,7 +50,7 @@ func getHoverCB(state *map[int]g143.Rect) glfw.CursorPosCallback {
 			}
 		}
 
-		if widgetCode == 0{
+		if widgetCode == 0 {
 			// send the last drawn frame to glfw window
 			windowRS := g143.Rect{Width: wWidth, Height: wHeight, OriginX: 0, OriginY: 0}
 			g143.DrawImage(wWidth, wHeight, CurrentWindowFrame, windowRS)

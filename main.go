@@ -24,6 +24,7 @@ func main() {
 		"color": "#444",
 		"size":  "1",
 	}
+	activeTool = TextTool
 
 	outPath := filepath.Join(rootPath, "slides")
 	os.MkdirAll(outPath, 0777)
@@ -39,6 +40,15 @@ func main() {
 			} else if aSlice[0] == "color" {
 				TextFromACPicker = pickColor()
 				ClearAFterACPicker = true
+			} else if aSlice[0] == "image" {
+				tmp := PickImageFile()
+				PathFromFPicker = ""
+				if tmp == "" && len(aSlice[1]) != 0 {
+					PathFromFPicker = aSlice[1]
+				} else {
+					PathFromFPicker = tmp
+				}
+				ClearAfterFPicker = true
 			}
 		}
 	}()
@@ -73,7 +83,7 @@ func main() {
 					objs := SlideFormat[CurrentSlide]
 					toWriteWidgetCode := 8001
 					if len(objs) > 0 {
-						 toWriteWidgetCode = objs[len(objs)-1].WidgetCode + 1
+						toWriteWidgetCode = objs[len(objs)-1].WidgetCode + 1
 					}
 					drawn := Drawn{Type: TextType, X: activeX, Y: activeY, Text: TextFromTPicker,
 						Color: SlideMemory[CurrentSlide]["color"], Size: sizeInt, WidgetCode: toWriteWidgetCode}
@@ -100,6 +110,34 @@ func main() {
 			window.SetCursorPosCallback(getHoverCB(&ObjCoords))
 
 			ClearAFterACPicker = false
+		}
+
+		if ClearAfterFPicker {
+			if PathFromFPicker != "" {
+				objs := SlideFormat[CurrentSlide]
+				size := SlideMemory[CurrentSlide]["size"]
+				sizeInt, _ := strconv.Atoi(size)
+
+				toWriteWidgetCode := 8001
+				if len(objs) > 0 {
+					toWriteWidgetCode = objs[len(objs)-1].WidgetCode + 1
+				}
+
+				drawn := Drawn{Type: ImageType, X: activeX, Y: activeY, ImagePath: PathFromFPicker,
+					Size: sizeInt, WidgetCode: toWriteWidgetCode}
+
+				SlideFormat[CurrentSlide] = append(objs, drawn)
+
+				PathFromFPicker = ""
+				activeX, activeY = -1, -1
+
+			}
+
+			DrawWorkView(window, CurrentSlide)
+			window.SetMouseButtonCallback(workViewMouseCallback)
+			window.SetCursorPosCallback(getHoverCB(&ObjCoords))
+
+			ClearAfterFPicker = false
 		}
 
 		time.Sleep(time.Second/time.Duration(FPS) - time.Since(t))

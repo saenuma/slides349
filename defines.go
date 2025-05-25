@@ -51,10 +51,18 @@ var (
 	TextFromTPicker   string
 	ClearAfterTPicker bool
 
+	ClearAfterFPicker bool
+	PathFromFPicker   string
+
 	TextFromACPicker   string
 	ClearAFterACPicker bool
 
 	cursorEventsCount = 0
+
+	toolNames = map[int]string{
+		SelectTool: "Select", MoveTool: "Move",
+		TextTool: "Text", ImageTool: "Image", PencilTool: "Pencil",
+	}
 )
 
 type DrawnType int
@@ -67,13 +75,13 @@ const (
 
 type Drawn struct {
 	WidgetCode int
-	Type DrawnType
-	X, Y int
-	W, H int
+	Type       DrawnType
+	X, Y       int
+	W, H       int
 	// text things
 	Text  string
 	Color string
 	Size  int
 	// image things
-	Image string
+	ImagePath string
 }

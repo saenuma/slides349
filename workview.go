@@ -11,7 +11,7 @@ import (
 	g143 "github.com/bankole7782/graphics143"
 	"github.com/fogleman/gg"
 	"github.com/go-gl/glfw/v3.3/glfw"
-	// "github.com/kovidgoyal/imaging"
+	"github.com/kovidgoyal/imaging"
 )
 
 func DrawWorkView(window *glfw.Window, slide int) {
@@ -28,7 +28,7 @@ func DrawWorkView(window *glfw.Window, slide int) {
 	// top panel
 	sTRS := theCtx.drawButtonA(SelectTool, 50, 10, "Select", fontColor, "#D9D5B0", "#D9D5B0")
 	tTX := nextHorizontalX(sTRS, 20)
-	tTRS := theCtx.drawButtonA(TextTool, tTX, 10, "Text", fontColor, "#D9D5B0", "#AEAC9C")
+	tTRS := theCtx.drawButtonA(TextTool, tTX, 10, "Text", fontColor, "#D9D5B0", "#D9D5B0")
 	iTX := nextHorizontalX(tTRS, 20)
 	iTRS := theCtx.drawButtonA(ImageTool, iTX, 10, "Image", fontColor, "#D9D5B0", "#D9D5B0")
 	pTX := nextHorizontalX(iTRS, 20)
@@ -52,7 +52,10 @@ func DrawWorkView(window *glfw.Window, slide int) {
 	selectedColor := SlideMemory[CurrentSlide]["color"]
 	theCtx.drawColorBox(TextColorTool, tCX, 10+5, tTRS.Height-15, selectedColor)
 
-	activeTool = TextTool
+	// place indicator on activeTool
+	activeToolRS := ObjCoords[activeTool]
+	theCtx.drawButtonA(activeTool, activeToolRS.OriginX, activeToolRS.OriginY, toolNames[activeTool],
+		fontColor, "#D9D5B0", "#AEAC9C")
 
 	// slides panel
 	currentY := 80
@@ -95,12 +98,12 @@ func DrawWorkView(window *glfw.Window, slide int) {
 	CurrentWindowFrame = theCtx.ggCtx.Image()
 }
 
-func drawSlide(slideNo int, imgWidth, imgHeight int) image.Image {
+func drawSlide(slideNo int, workingWidth, workingHeight int) image.Image {
 	// frame buffer
-	ggCtx := gg.NewContext(imgWidth, imgHeight)
+	ggCtx := gg.NewContext(workingWidth, workingHeight)
 
 	// background rectangle
-	ggCtx.DrawRectangle(0, 0, float64(imgWidth), float64(imgHeight))
+	ggCtx.DrawRectangle(0, 0, float64(workingWidth), float64(workingHeight))
 	ggCtx.SetHexColor("#ffffff")
 	ggCtx.Fill()
 
@@ -125,17 +128,32 @@ func drawSlide(slideNo int, imgWidth, imgHeight int) image.Image {
 					maxX = int(strW)
 				}
 				ggCtx.SetHexColor(obj.Color)
-				drawnX := obj.X-canvasRS.OriginX
+				drawnX := obj.X - canvasRS.OriginX
 				drawnY := currentY + textFontSizeInt - canvasRS.OriginY
 				ggCtx.DrawString(str, float64(drawnX), float64(drawnY))
 				currentY += 10 + textFontSizeInt
 			}
 
 			obj.W = maxX
-			obj.H = currentY-obj.Y
+			obj.H = currentY - obj.Y
 			SlideFormat[CurrentSlide][i] = obj
 
 		} else if obj.Type == ImageType {
+			img, err := imaging.Open(obj.ImagePath)
+			if err != nil {
+				fmt.Println(err)
+			}
+
+			imgW := float64(obj.Size) * 100
+			scale := float64(imgW) / float64(img.Bounds().Dx())
+			newH := int(scale * float64(img.Bounds().Dy()))
+			img = imaging.Fit(img, int(imgW), newH, imaging.Lanczos)
+			ggCtx.DrawImage(img, obj.X-canvasRS.OriginX, obj.Y-canvasRS.OriginY)
+
+			obj.W = int(imgW)
+			obj.H = newH
+
+			SlideFormat[CurrentSlide][i] = obj
 
 		} else if obj.Type == PencilType {
 
@@ -177,10 +195,7 @@ func workViewMouseCallback(window *glfw.Window, button glfw.MouseButton, action 
 		activeTool = widgetCode
 
 		theCtx := Continue2dCtx(CurrentWindowFrame, &ObjCoords)
-		toolNames := map[int]string{
-			SelectTool: "Select", MoveTool: "Move",
-			TextTool: "Text", ImageTool: "Image", PencilTool: "Pencil",
-		}
+
 		// clear all tools
 		for _, toolId := range []int{SelectTool, TextTool, ImageTool, PencilTool, MoveTool} {
 			toolRS := ObjCoords[toolId]
@@ -207,49 +222,100 @@ func workViewMouseCallback(window *glfw.Window, button glfw.MouseButton, action 
 		// translastedMouseX, translatedMouseY := xPos-float64(canvasRS.OriginX), yPos-float64(canvasRS.OriginY)
 		activeX, activeY = xPosInt, yPosInt
 
-		if activeTool == TextTool && ctrlState == glfw.Release {
-			// stop interaction till returning from tpicker
-			window.SetMouseButtonCallback(nil)
-			window.SetCursorPosCallback(nil)
+		if activeTool == TextTool {
 
-			foundIndex := -1
-			for i, obj := range SlideFormat[CurrentSlide] {
-				if obj.Type != TextType {
-					continue
+			if ctrlState == glfw.Release {
+				// stop interaction till returning from tpicker
+				window.SetMouseButtonCallback(nil)
+				window.SetCursorPosCallback(nil)
+
+				foundIndex := -1
+				for i, obj := range SlideFormat[CurrentSlide] {
+					if obj.Type != TextType {
+						continue
+					}
+					objRect := g143.NewRect(obj.X, obj.Y, obj.W, obj.H)
+					if g143.InRect(objRect, activeX, activeY) {
+						foundIndex = i
+						break
+					}
 				}
-				objRect := g143.NewRect(obj.X, obj.Y, obj.W, obj.H)
-				if g143.InRect(objRect, activeX, activeY) {
-					foundIndex = i
-					break
+
+				if foundIndex != -1 {
+					DrawnEditIndex = foundIndex
+					PickerChan <- []string{"text", SlideFormat[CurrentSlide][foundIndex].Text}
+				} else {
+					PickerChan <- []string{"text", ""}
 				}
+
+			} else if ctrlState == glfw.Press {
+				foundIndex := -1
+				for i, obj := range SlideFormat[CurrentSlide] {
+					if obj.Type != TextType {
+						continue
+					}
+					objRect := g143.NewRect(obj.X, obj.Y, obj.W, obj.H)
+					if g143.InRect(objRect, activeX, activeY) {
+						foundIndex = i
+						break
+					}
+				}
+
+				if foundIndex != -1 {
+					objs := SlideFormat[CurrentSlide]
+					SlideFormat[CurrentSlide] = slices.Delete(objs, foundIndex, foundIndex+1)
+				}
+
+				DrawWorkView(window, CurrentSlide)
 			}
 
-			if foundIndex != -1 {
-				DrawnEditIndex = foundIndex
-				PickerChan <- []string{"text", SlideFormat[CurrentSlide][foundIndex].Text}
-			} else {
-				PickerChan <- []string{"text", ""}
-			}
+		} else if activeTool == ImageTool {
 
-		} else if activeTool == TextTool && ctrlState == glfw.Press {
-			foundIndex := -1
-			for i, obj := range SlideFormat[CurrentSlide] {
-				if obj.Type != TextType {
-					continue
+			if ctrlState == glfw.Release {
+				// stop interaction till returning from tpicker
+				window.SetMouseButtonCallback(nil)
+				window.SetCursorPosCallback(nil)
+
+				foundIndex := -1
+				for i, obj := range SlideFormat[CurrentSlide] {
+					if obj.Type != PencilTool {
+						continue
+					}
+					objRect := g143.NewRect(obj.X, obj.Y, obj.W, obj.H)
+					if g143.InRect(objRect, activeX, activeY) {
+						foundIndex = i
+						break
+					}
 				}
-				objRect := g143.NewRect(obj.X, obj.Y, obj.W, obj.H)
-				if g143.InRect(objRect, activeX, activeY) {
-					foundIndex = i
-					break
+
+				if foundIndex != -1 {
+					DrawnEditIndex = foundIndex
+					PickerChan <- []string{"image", SlideFormat[CurrentSlide][foundIndex].ImagePath}
+				} else {
+					PickerChan <- []string{"image", ""}
 				}
+
+			} else if ctrlState == glfw.Press {
+				foundIndex := -1
+				for i, obj := range SlideFormat[CurrentSlide] {
+					if obj.Type != ImageType {
+						continue
+					}
+					objRect := g143.NewRect(obj.X, obj.Y, obj.W, obj.H)
+					if g143.InRect(objRect, activeX, activeY) {
+						foundIndex = i
+						break
+					}
+				}
+
+				if foundIndex != -1 {
+					objs := SlideFormat[CurrentSlide]
+					SlideFormat[CurrentSlide] = slices.Delete(objs, foundIndex, foundIndex+1)
+				}
+
+				DrawWorkView(window, CurrentSlide)
 			}
 
-			if foundIndex != -1 {
-				objs := SlideFormat[CurrentSlide]
-				SlideFormat[CurrentSlide] = slices.Delete(objs, foundIndex, foundIndex+1)
-			}
-
-			DrawWorkView(window, CurrentSlide)
 		}
 
 	case PlusSizeTool:
