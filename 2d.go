@@ -133,9 +133,3 @@ func (ctx *Ctx) windowRect() g143.Rect {
 func nextHorizontalX(aRect g143.Rect, margin int) int {
 	return aRect.OriginX + aRect.Width + margin
 }
-
-func nextVerticalCoords(aRect g143.Rect, margin int) (int, int) {
-	nextOriginX := margin
-	nextOriginY := aRect.OriginY + aRect.Height + margin
-	return nextOriginX, nextOriginY
-}

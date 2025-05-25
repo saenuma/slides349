@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"math"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -109,26 +110,28 @@ func drawOnCanvas() image.Image {
 
 	for i, obj := range SlideFormat[CurrentSlide] {
 		if obj.Type == TextType {
-			textDetail := TextDetails[obj.DetailsId]
-			strs := strings.Split(strings.ReplaceAll(textDetail.Text, "\r", ""), "\n")
-			textFontSize := float64(textDetail.Size) * 15
+			strs := strings.Split(strings.ReplaceAll(obj.Text, "\r", ""), "\n")
+			textFontSize := float64(obj.Size) * 15
 			textFontSizeInt := int(math.Ceil(textFontSize))
 			ggCtx.LoadFontFace(fontPath, textFontSize)
 
 			maxX := 0
-			currentY := obj.Y + textFontSizeInt
+			currentY := obj.Y
+
+			textHeight := 0
 			for _, str := range strs {
-				strW, _ := ggCtx.MeasureString(str)
+				strW, strH := ggCtx.MeasureString(str)
 				if int(strW) > maxX {
 					maxX = int(strW)
 				}
-				ggCtx.SetHexColor(textDetail.Color)
-				ggCtx.DrawString(str, float64(obj.X), float64(currentY))
-				currentY += 10 + textFontSizeInt
+				textHeight += int(strH)
+				ggCtx.SetHexColor(obj.Color)
+				ggCtx.DrawString(str, float64(obj.X), float64(currentY+	textFontSizeInt))
+				currentY += 10
 			}
 
 			obj.W = maxX
-			obj.H = currentY - obj.Y
+			obj.H = textHeight
 			SlideFormat[CurrentSlide][i] = obj
 
 		} else if obj.Type == ImageType {
@@ -201,38 +204,51 @@ func workViewMouseCallback(window *glfw.Window, button glfw.MouseButton, action 
 		canvasRS := ObjCoords[CanvasWidget]
 
 		translastedMouseX, translatedMouseY := xPos-float64(canvasRS.OriginX), yPos-float64(canvasRS.OriginY)
+		activeX, activeY = int(translastedMouseX), int(translatedMouseY)
 
 		if activeTool == TextTool && ctrlState == glfw.Release {
-
-			activeX, activeY = int(translastedMouseX), int(translatedMouseY)
-
+			// stop interaction till returning from tpicker
 			window.SetMouseButtonCallback(nil)
 			window.SetCursorPosCallback(nil)
 
-			fmt.Println("len of objs : ", len(SlideFormat[CurrentSlide]))
-			var foundDrawnText TextDetail
-			found := -1
-			fmt.Println("x: ", activeX, "y : ", activeY)
+			foundIndex := -1
 			for i, obj := range SlideFormat[CurrentSlide] {
 				if obj.Type != TextType {
 					continue
 				}
-				fmt.Printf("obj : %+v\n", obj)
 				objRect := g143.NewRect(obj.X, obj.Y, obj.W, obj.H)
 				if g143.InRect(objRect, activeX, activeY) {
-					foundDrawnText = TextDetails[obj.DetailsId]
-					found = i
+					foundIndex = i
 					break
 				}
 			}
 
-			fmt.Println("found: ", found)
-			if found != -1 {
-				DrawnEditIndex = found
-				PickerChan <- []string{"text", foundDrawnText.Text}
+			if foundIndex != -1 {
+				DrawnEditIndex = foundIndex
+				PickerChan <- []string{"text", SlideFormat[CurrentSlide][foundIndex].Text}
 			} else {
 				PickerChan <- []string{"text", ""}
 			}
+
+		} else if activeTool == TextTool && ctrlState == glfw.Press {
+			foundIndex := -1
+			for i, obj := range SlideFormat[CurrentSlide] {
+				if obj.Type != TextType {
+					continue
+				}
+				objRect := g143.NewRect(obj.X, obj.Y, obj.W, obj.H)
+				if g143.InRect(objRect, activeX, activeY) {
+					foundIndex = i
+					break
+				}
+			}
+
+			if foundIndex != -1 {
+				objs := SlideFormat[CurrentSlide]
+				SlideFormat[CurrentSlide] = slices.Delete(objs, foundIndex, foundIndex+1)
+			}
+
+			DrawWorkView(window, CurrentSlide)
 		}
 
 	case PlusSizeTool:

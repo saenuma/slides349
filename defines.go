@@ -36,9 +36,7 @@ var (
 	CanvasRect         g143.Rect
 	activeTool         int
 
-	SlideFormat  map[int][]Drawn
-	TextDetails  []TextDetail  = make([]TextDetail, 0)
-	ImageDetails []ImageDetail = make([]ImageDetail, 0)
+	SlideFormat map[int][]Drawn
 
 	SlideMemory     map[int]map[string]string
 	SlidePreview    map[int]map[string]*image.Image
@@ -55,18 +53,9 @@ var (
 
 	TextFromACPicker   string
 	ClearAFterACPicker bool
+
+	cursorEventsCount = 0
 )
-
-type TextDetail struct {
-	Text  string
-	Color string
-	Size  int
-}
-
-type ImageDetail struct {
-	Image string // a path
-	Size  int
-}
 
 type DrawnType int
 
@@ -77,8 +66,13 @@ const (
 )
 
 type Drawn struct {
-	Type      DrawnType
-	X, Y      int
-	W, H      int
-	DetailsId int
+	Type DrawnType
+	X, Y int
+	W, H int
+	// text things
+	Text  string
+	Color string
+	Size  int
+	// image things
+	Image string
 }

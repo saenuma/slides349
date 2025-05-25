@@ -52,8 +52,8 @@ func main() {
 	// window.SetKeyCallback(ProjKeyCallback)
 	// // save the project file
 	// window.SetCloseCallback(SaveProjectCloseCallback)
-	// // quick hover effect
-	// window.SetCursorPosCallback(getHoverCB(ProjObjCoords))
+	// quick hover effect
+	window.SetCursorPosCallback(getHoverCB(&ObjCoords))
 
 	for !window.ShouldClose() {
 		t := time.Now()
@@ -65,14 +65,13 @@ func main() {
 				sizeInt, _ := strconv.Atoi(size)
 
 				if DrawnEditIndex != -1 {
-					textDetail := TextDetail{TextFromTPicker, SlideMemory[CurrentSlide]["color"], sizeInt}
-					drawnTextObj := SlideFormat[CurrentSlide][DrawnEditIndex]
-					TextDetails[drawnTextObj.DetailsId] = textDetail
+					drawnText := SlideFormat[CurrentSlide][DrawnEditIndex]
+					drawnText.Text = TextFromTPicker
+					SlideFormat[CurrentSlide][DrawnEditIndex] = drawnText
 					DrawnEditIndex = -1
 				} else {
-					textDetail := TextDetail{TextFromTPicker, SlideMemory[CurrentSlide]["color"], sizeInt}
-					TextDetails = append(TextDetails, textDetail)
-					drawn := Drawn{Type: TextType, X: activeX, Y: activeY, DetailsId: len(TextDetails) - 1}
+					drawn := Drawn{Type: TextType, X: activeX, Y: activeY, Text: TextFromTPicker,
+						Color: SlideMemory[CurrentSlide]["color"], Size: sizeInt}
 					objs := SlideFormat[CurrentSlide]
 					SlideFormat[CurrentSlide] = append(objs, drawn)
 				}
@@ -82,7 +81,7 @@ func main() {
 
 			DrawWorkView(window, CurrentSlide)
 			window.SetMouseButtonCallback(workViewMouseCallback)
-			// window.SetCursorPosCallback(getHoverCB(objCoords))
+			window.SetCursorPosCallback(getHoverCB(&ObjCoords))
 
 			ClearAfterTPicker = false
 		}
@@ -93,6 +92,7 @@ func main() {
 
 			DrawWorkView(window, CurrentSlide)
 			window.SetMouseButtonCallback(workViewMouseCallback)
+			window.SetCursorPosCallback(getHoverCB(&ObjCoords))
 
 			ClearAFterACPicker = false
 		}
