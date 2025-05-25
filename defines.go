@@ -66,6 +66,7 @@ const (
 )
 
 type Drawn struct {
+	WidgetCode int
 	Type DrawnType
 	X, Y int
 	W, H int

@@ -70,9 +70,14 @@ func main() {
 					SlideFormat[CurrentSlide][DrawnEditIndex] = drawnText
 					DrawnEditIndex = -1
 				} else {
-					drawn := Drawn{Type: TextType, X: activeX, Y: activeY, Text: TextFromTPicker,
-						Color: SlideMemory[CurrentSlide]["color"], Size: sizeInt}
 					objs := SlideFormat[CurrentSlide]
+					toWriteWidgetCode := 8001
+					if len(objs) > 0 {
+						 toWriteWidgetCode = objs[len(objs)-1].WidgetCode + 1
+					}
+					drawn := Drawn{Type: TextType, X: activeX, Y: activeY, Text: TextFromTPicker,
+						Color: SlideMemory[CurrentSlide]["color"], Size: sizeInt, WidgetCode: toWriteWidgetCode}
+
 					SlideFormat[CurrentSlide] = append(objs, drawn)
 				}
 			}

@@ -11,7 +11,7 @@ import (
 	g143 "github.com/bankole7782/graphics143"
 	"github.com/fogleman/gg"
 	"github.com/go-gl/glfw/v3.3/glfw"
-	"github.com/kovidgoyal/imaging"
+	// "github.com/kovidgoyal/imaging"
 )
 
 func DrawWorkView(window *glfw.Window, slide int) {
@@ -80,13 +80,13 @@ func DrawWorkView(window *glfw.Window, slide int) {
 	theCtx.ggCtx.DrawRectangle(float64(canvasX), 80, WorkAreaWidth*0.8, WorkAreaHeight*0.8)
 	theCtx.ggCtx.Fill()
 
-	nWAW, nWAH := int(math.Ceil(WorkAreaWidth*0.8-2)), int(math.Ceil(WorkAreaHeight*0.8-2))
-	canvasImg := drawOnCanvas()
-	canvasImg = imaging.Fit(canvasImg, nWAW, nWAH, imaging.Lanczos)
-	theCtx.ggCtx.DrawImage(canvasImg, canvasX+1, 80+1)
+	nWAW, nWAH := int(math.Ceil(WorkAreaWidth*0.8))-2, int(math.Ceil(WorkAreaHeight*0.8))-2
 	CanvasRect = g143.NewRect(canvasX+1, 80+1, nWAW, nWAH)
-
 	ObjCoords[CanvasWidget] = CanvasRect
+
+	canvasImg := drawSlide(CurrentSlide, nWAW, nWAH)
+	theCtx.ggCtx.DrawImage(canvasImg, canvasX+1, 80+1)
+
 	// send the frame to glfw window
 	g143.DrawImage(wWidth, wHeight, theCtx.ggCtx.Image(), theCtx.windowRect())
 	window.SwapBuffers()
@@ -95,20 +95,21 @@ func DrawWorkView(window *glfw.Window, slide int) {
 	CurrentWindowFrame = theCtx.ggCtx.Image()
 }
 
-func drawOnCanvas() image.Image {
+func drawSlide(slideNo int, imgWidth, imgHeight int) image.Image {
 	// frame buffer
-	ggCtx := gg.NewContext(WorkAreaWidth, WorkAreaHeight)
+	ggCtx := gg.NewContext(imgWidth, imgHeight)
 
 	// background rectangle
-	ggCtx.DrawRectangle(0, 0, float64(WorkAreaWidth), float64(WorkAreaHeight))
+	ggCtx.DrawRectangle(0, 0, float64(imgWidth), float64(imgHeight))
 	ggCtx.SetHexColor("#ffffff")
 	ggCtx.Fill()
 
+	canvasRS := ObjCoords[CanvasWidget]
 	// load font
 	fontPath := GetDefaultFontPath()
 	ggCtx.LoadFontFace(fontPath, 20)
 
-	for i, obj := range SlideFormat[CurrentSlide] {
+	for i, obj := range SlideFormat[slideNo] {
 		if obj.Type == TextType {
 			strs := strings.Split(strings.ReplaceAll(obj.Text, "\r", ""), "\n")
 			textFontSize := float64(obj.Size) * 15
@@ -118,20 +119,20 @@ func drawOnCanvas() image.Image {
 			maxX := 0
 			currentY := obj.Y
 
-			textHeight := 0
 			for _, str := range strs {
-				strW, strH := ggCtx.MeasureString(str)
+				strW, _ := ggCtx.MeasureString(str)
 				if int(strW) > maxX {
 					maxX = int(strW)
 				}
-				textHeight += int(strH)
 				ggCtx.SetHexColor(obj.Color)
-				ggCtx.DrawString(str, float64(obj.X), float64(currentY+	textFontSizeInt))
-				currentY += 10
+				drawnX := obj.X-canvasRS.OriginX
+				drawnY := currentY + textFontSizeInt - canvasRS.OriginY
+				ggCtx.DrawString(str, float64(drawnX), float64(drawnY))
+				currentY += 10 + textFontSizeInt
 			}
 
 			obj.W = maxX
-			obj.H = textHeight
+			obj.H = currentY-obj.Y
 			SlideFormat[CurrentSlide][i] = obj
 
 		} else if obj.Type == ImageType {
@@ -201,10 +202,10 @@ func workViewMouseCallback(window *glfw.Window, button glfw.MouseButton, action 
 	case CanvasWidget:
 		// theCtx := Continue2dCtx(CurrentWindowFrame, &ObjCoords)
 		ctrlState := window.GetKey(glfw.KeyLeftControl)
-		canvasRS := ObjCoords[CanvasWidget]
+		// canvasRS := ObjCoords[CanvasWidget]
 
-		translastedMouseX, translatedMouseY := xPos-float64(canvasRS.OriginX), yPos-float64(canvasRS.OriginY)
-		activeX, activeY = int(translastedMouseX), int(translatedMouseY)
+		// translastedMouseX, translatedMouseY := xPos-float64(canvasRS.OriginX), yPos-float64(canvasRS.OriginY)
+		activeX, activeY = xPosInt, yPosInt
 
 		if activeTool == TextTool && ctrlState == glfw.Release {
 			// stop interaction till returning from tpicker

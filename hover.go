@@ -5,7 +5,7 @@ import (
 	"runtime"
 
 	g143 "github.com/bankole7782/graphics143"
-	"github.com/disintegration/imaging"
+	"github.com/kovidgoyal/imaging"	
 	"github.com/fogleman/gg"
 	"github.com/go-gl/glfw/v3.3/glfw"
 )
@@ -39,6 +39,14 @@ func getHoverCB(state *map[int]g143.Rect) glfw.CursorPosCallback {
 				widgetRS = RS
 				widgetCode = code
 				break
+			}
+		}
+
+		for _, drawn := range SlideFormat[CurrentSlide] {
+			tmpRS := g143.NewRect(drawn.X, drawn.Y, drawn.W, drawn.H)
+			if g143.InRect(tmpRS, xPosInt, yPosInt) {
+				widgetRS = tmpRS
+				widgetCode = drawn.WidgetCode
 			}
 		}
 
