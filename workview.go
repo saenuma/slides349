@@ -30,7 +30,9 @@ func DrawWorkView(window *glfw.Window, slide int) {
 	tTRS := theCtx.drawButtonA(TextTool, tTX, 10, "Text", fontColor, "#D9D5B0", "#D9D5B0")
 	iTX := nextHorizontalX(tTRS, 20)
 	iTRS := theCtx.drawButtonA(ImageTool, iTX, 10, "Image", fontColor, "#D9D5B0", "#D9D5B0")
-	dividerX := nextHorizontalX(iTRS, 20)
+	mTX := nextHorizontalX(iTRS, 20)
+	mTRS := theCtx.drawButtonA(MoveTool, mTX, 10, "Move", fontColor, "#D9D5B0", "#D9D5B0")
+	dividerX := nextHorizontalX(mTRS, 20)
 	theCtx.ggCtx.SetHexColor("#444")
 	theCtx.ggCtx.DrawRectangle(float64(dividerX), 10, 2, float64(tTRS.Height))
 	theCtx.ggCtx.Fill()
@@ -204,13 +206,13 @@ func workViewMouseCallback(window *glfw.Window, button glfw.MouseButton, action 
 		SlideFormat = slices.Insert(SlideFormat, CurrentSlide, make([]Drawn, 0))
 		DrawWorkView(window, CurrentSlide)
 
-	case TextTool, ImageTool:
+	case TextTool, ImageTool, MoveTool:
 		activeTool = widgetCode
 
 		theCtx := Continue2dCtx(CurrentWindowFrame, &ObjCoords)
 
 		// clear all tools
-		for _, toolId := range []int{TextTool, ImageTool} {
+		for _, toolId := range []int{TextTool, ImageTool, MoveTool} {
 			toolRS := ObjCoords[toolId]
 			theCtx.drawButtonA(toolId, toolRS.OriginX, toolRS.OriginY, toolNames[toolId],
 				fontColor, "#D9D5B0", "#D9D5B0")
@@ -329,6 +331,30 @@ func workViewMouseCallback(window *glfw.Window, button glfw.MouseButton, action 
 				DrawWorkView(window, CurrentSlide)
 			}
 
+		} else if activeTool == MoveTool {
+			if ToMoveIndex == -1 {
+				foundIndex := -1
+				for i, obj := range SlideFormat[CurrentSlide] {
+					objRect := g143.NewRect(obj.X, obj.Y, obj.W, obj.H)
+					if g143.InRect(objRect, activeX, activeY) {
+						foundIndex = i
+						break
+					}
+				}
+
+				ToMoveIndex = foundIndex
+
+			} else {
+				obj := SlideFormat[CurrentSlide][ToMoveIndex]
+				obj.X = activeX
+				obj.Y = activeY
+
+				SlideFormat[CurrentSlide][ToMoveIndex] = obj
+				ToMoveIndex = -1
+
+				DrawWorkView(window, CurrentSlide)
+			}
+
 		}
 
 	case PlusSizeBtn:
@@ -382,12 +408,15 @@ func workViewMouseCallback(window *glfw.Window, button glfw.MouseButton, action 
 		if ctrlState == glfw.Release {
 			CurrentSlide = slideNum
 			DrawWorkView(window, CurrentSlide)
+
+			ToMoveIndex = -1
 		} else if ctrlState == glfw.Press {
 			if TotalSlides != 1 {
 				SlideFormat = slices.Delete(SlideFormat, slideNum-1, slideNum)
 				CurrentSlide = 1
 				TotalSlides -= 1
 				DrawWorkView(window, CurrentSlide)
+				ToMoveIndex = -1
 			}
 		}
 

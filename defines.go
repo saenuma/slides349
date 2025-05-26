@@ -17,6 +17,7 @@ const (
 	TextTool     = 31
 	ImageTool    = 32
 	AddSlideBtn  = 34
+	MoveTool     = 35
 	CanvasWidget = 39
 
 	ColorPickerBtn = 312
@@ -58,8 +59,10 @@ var (
 	cursorEventsCount = 0
 
 	toolNames = map[int]string{
-		TextTool: "Text", ImageTool: "Image",
+		TextTool: "Text", ImageTool: "Image", MoveTool: "Move",
 	}
+
+	ToMoveIndex int
 )
 
 type DrawnType int
