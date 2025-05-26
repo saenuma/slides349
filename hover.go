@@ -42,7 +42,7 @@ func getHoverCB(state *map[int]g143.Rect) glfw.CursorPosCallback {
 			}
 		}
 
-		for _, drawn := range SlideFormat[CurrentSlide-1] {
+		for _, drawn := range SlideFormat[CurrentSlide] {
 			tmpRS := g143.NewRect(drawn.X, drawn.Y, drawn.W, drawn.H)
 			if g143.InRect(tmpRS, xPosInt, yPosInt) {
 				widgetRS = tmpRS

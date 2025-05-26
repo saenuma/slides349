@@ -15,7 +15,6 @@ import (
 )
 
 func DrawWorkView(window *glfw.Window, slide int) {
-
 	CurrentSlide = slide
 
 	window.SetTitle(fmt.Sprintf("Project: %s ---- %s", ProjectName, ProgTitle))
@@ -54,31 +53,35 @@ func DrawWorkView(window *glfw.Window, slide int) {
 		fontColor, "#D9D5B0", "#AEAC9C")
 
 	// slides panel
+	slideWidth, slideHeight := int(math.Ceil(WorkAreaWidth*0.8))-2, int(math.Ceil(WorkAreaHeight*0.8))-2
 	currentY := 80
 	for i := range TotalSlides {
-		iInUse := i + 1
+		displayI := i + 1
 		theCtx.ggCtx.SetHexColor(fontColor)
-		theCtx.ggCtx.DrawString(fmt.Sprintf("%d", iInUse), 10, float64(currentY+FontSize))
+		theCtx.ggCtx.DrawString(fmt.Sprintf("%d", displayI), 10, float64(currentY+FontSize))
 
+		// draw border rectangle
 		theCtx.ggCtx.SetHexColor(fontColor)
 		slideX := 10 + FontSize + 5
 		theCtx.ggCtx.DrawRectangle(float64(slideX), float64(currentY), WorkAreaWidth*0.15, WorkAreaHeight*0.15)
 		theCtx.ggCtx.Fill()
 
-		if iInUse == CurrentSlide {
+		if i == CurrentSlide {
 			theCtx.ggCtx.SetHexColor("#BE7171")
 			theCtx.ggCtx.DrawRectangle(float64(slideX)+WorkAreaWidth*0.15+2, float64(currentY), 10, WorkAreaHeight*0.15)
 			theCtx.ggCtx.Fill()
 		}
 
-		theCtx.ggCtx.SetHexColor("#fff")
-		theCtx.ggCtx.DrawRectangle(float64(slideX)+1, float64(currentY)+1, (WorkAreaWidth*0.15 - 2),
-			(WorkAreaHeight*0.15 - 2))
-		theCtx.ggCtx.Fill()
+		// draw thumbnail
+		slideImg := drawSlide(i, slideWidth, slideHeight)
+		thumbnailWidth, thumbnailHeight := int(math.Ceil(WorkAreaWidth*0.15))-2, int(math.Ceil(WorkAreaHeight*0.15))-2
+		slideImg = imaging.Fit(slideImg, thumbnailWidth, thumbnailHeight, imaging.Lanczos)
+		theCtx.ggCtx.DrawImage(slideImg, slideX+1, currentY+1)
 
+		// register thumbnail
 		sTW, sTH := int(math.Ceil(WorkAreaWidth*0.15)), int(math.Ceil(WorkAreaHeight*0.15))
 		SlideThumbnailRect := g143.NewRect(slideX, currentY, sTW, sTH)
-		ObjCoords[1000+iInUse] = SlideThumbnailRect
+		ObjCoords[1000+displayI] = SlideThumbnailRect
 
 		currentY += 10 + int(math.Ceil(WorkAreaHeight*0.15))
 	}
@@ -90,11 +93,10 @@ func DrawWorkView(window *glfw.Window, slide int) {
 	theCtx.ggCtx.DrawRectangle(float64(canvasX), 80, WorkAreaWidth*0.8, WorkAreaHeight*0.8)
 	theCtx.ggCtx.Fill()
 
-	nWAW, nWAH := int(math.Ceil(WorkAreaWidth*0.8))-2, int(math.Ceil(WorkAreaHeight*0.8))-2
-	CanvasRect = g143.NewRect(canvasX+1, 80+1, nWAW, nWAH)
+	CanvasRect = g143.NewRect(canvasX+1, 80+1, slideWidth, slideHeight)
 	ObjCoords[CanvasWidget] = CanvasRect
 
-	canvasImg := drawSlide(CurrentSlide, nWAW, nWAH)
+	canvasImg := drawSlide(CurrentSlide, slideWidth, slideHeight)
 	theCtx.ggCtx.DrawImage(canvasImg, canvasX+1, 80+1)
 
 	// send the frame to glfw window
@@ -119,7 +121,7 @@ func drawSlide(slideNo int, workingWidth, workingHeight int) image.Image {
 	fontPath := GetDefaultFontPath()
 	ggCtx.LoadFontFace(fontPath, 20)
 
-	for i, obj := range SlideFormat[slideNo-1] {
+	for i, obj := range SlideFormat[slideNo] {
 		if obj.Type == TextType {
 			strs := strings.Split(strings.ReplaceAll(obj.Text, "\r", ""), "\n")
 			textFontSize := float64(obj.Size) * 15
@@ -143,7 +145,7 @@ func drawSlide(slideNo int, workingWidth, workingHeight int) image.Image {
 
 			obj.W = maxX
 			obj.H = currentY - obj.Y
-			SlideFormat[CurrentSlide][i] = obj
+			SlideFormat[slideNo][i] = obj
 
 		} else if obj.Type == ImageType {
 			img, err := imaging.Open(obj.ImagePath)
@@ -160,7 +162,7 @@ func drawSlide(slideNo int, workingWidth, workingHeight int) image.Image {
 			obj.W = int(imgW)
 			obj.H = newH
 
-			SlideFormat[CurrentSlide][i] = obj
+			SlideFormat[slideNo][i] = obj
 		}
 	}
 
@@ -374,7 +376,7 @@ func workViewMouseCallback(window *glfw.Window, button glfw.MouseButton, action 
 
 	// for generated buttons
 	if widgetCode > 1000 && widgetCode < 2000 {
-		slideNum := widgetCode - 1000
+		slideNum := widgetCode - 1000 - 1
 		ctrlState := window.GetKey(glfw.KeyLeftControl)
 
 		if ctrlState == glfw.Release {

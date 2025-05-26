@@ -56,7 +56,7 @@ func main() {
 	}()
 
 	window := g143.NewWindow(1400, 800, ProgTitle, false)
-	DrawWorkView(window, 1)
+	DrawWorkView(window, CurrentSlide)
 
 	// respond to the mouse
 	window.SetMouseButtonCallback(workViewMouseCallback)
