@@ -18,9 +18,11 @@ func main() {
 	}
 
 	// initialize
-	SlideFormat = make(map[int][]Drawn)
-	SlideMemory = make(map[int]map[string]string)
-	SlideMemory[1] = map[string]string{
+	SlideFormat = make([][]Drawn, 0)
+	SlideFormat = append(SlideFormat, make([]Drawn, 0)) // first slide
+
+	InputsState = make(map[string]string)
+	InputsState = map[string]string{
 		"color": "#444",
 		"size":  "1",
 	}
@@ -71,7 +73,7 @@ func main() {
 
 		if ClearAfterTPicker {
 			if len(TextFromTPicker) > 0 {
-				size := SlideMemory[CurrentSlide]["size"]
+				size := InputsState["size"]
 				sizeInt, _ := strconv.Atoi(size)
 
 				if DrawnEditIndex != -1 {
@@ -86,7 +88,7 @@ func main() {
 						toWriteWidgetCode = objs[len(objs)-1].WidgetCode + 1
 					}
 					drawn := Drawn{Type: TextType, X: activeX, Y: activeY, Text: TextFromTPicker,
-						Color: SlideMemory[CurrentSlide]["color"], Size: sizeInt, WidgetCode: toWriteWidgetCode}
+						Color: InputsState["color"], Size: sizeInt, WidgetCode: toWriteWidgetCode}
 
 					SlideFormat[CurrentSlide] = append(objs, drawn)
 				}
@@ -102,7 +104,7 @@ func main() {
 		}
 
 		if ClearAFterACPicker {
-			SlideMemory[CurrentSlide]["color"] = TextFromACPicker
+			InputsState["color"] = TextFromACPicker
 			TextFromACPicker = ""
 
 			DrawWorkView(window, CurrentSlide)
@@ -115,7 +117,7 @@ func main() {
 		if ClearAfterFPicker {
 			if PathFromFPicker != "" {
 				objs := SlideFormat[CurrentSlide]
-				size := SlideMemory[CurrentSlide]["size"]
+				size := InputsState["size"]
 				sizeInt, _ := strconv.Atoi(size)
 
 				toWriteWidgetCode := 8001

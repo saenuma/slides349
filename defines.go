@@ -16,14 +16,12 @@ const (
 
 	TextTool     = 31
 	ImageTool    = 32
-	PencilTool   = 33
-	SelectTool   = 34
-	MoveTool     = 35
+	AddSlideBtn  = 34
 	CanvasWidget = 39
 
-	TextColorTool  = 312
-	MinusSizeTool  = 314
-	PlusSizeTool   = 315
+	ColorPickerBtn = 312
+	MinusSizeBtn   = 314
+	PlusSizeBtn    = 315
 	DrawnSizeInput = 316
 )
 
@@ -32,14 +30,14 @@ var (
 	CurrentWindowFrame image.Image
 	ProjectName        string = "tmp_proj"
 	CurrentSlide       int
-	TotalSlides        int = 3
+	TotalSlides        int = 1
 	CanvasRect         g143.Rect
 	activeTool         int
 
-	SlideFormat map[int][]Drawn
+	SlideFormat [][]Drawn
 
-	SlideMemory     map[int]map[string]string
-	SlidePreview    map[int]map[string]*image.Image
+	InputsState     map[string]string
+	SlidePreview    map[int][]*image.Image
 	CurrentSlideImg image.Image
 
 	DrawnEditIndex int = -1
@@ -60,8 +58,7 @@ var (
 	cursorEventsCount = 0
 
 	toolNames = map[int]string{
-		SelectTool: "Select", MoveTool: "Move",
-		TextTool: "Text", ImageTool: "Image", PencilTool: "Pencil",
+		TextTool: "Text", ImageTool: "Image",
 	}
 )
 
@@ -70,7 +67,6 @@ type DrawnType int
 const (
 	TextType DrawnType = iota
 	ImageType
-	PencilType
 )
 
 type Drawn struct {

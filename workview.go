@@ -26,31 +26,27 @@ func DrawWorkView(window *glfw.Window, slide int) {
 	theCtx := New2dCtx(wWidth, wHeight, &ObjCoords)
 
 	// top panel
-	sTRS := theCtx.drawButtonA(SelectTool, 50, 10, "Select", fontColor, "#D9D5B0", "#D9D5B0")
+	sTRS := theCtx.drawButtonA(AddSlideBtn, 50, 10, "Add Slide", fontColor, "#D9D5B0", "#D9D5B0")
 	tTX := nextHorizontalX(sTRS, 20)
 	tTRS := theCtx.drawButtonA(TextTool, tTX, 10, "Text", fontColor, "#D9D5B0", "#D9D5B0")
 	iTX := nextHorizontalX(tTRS, 20)
 	iTRS := theCtx.drawButtonA(ImageTool, iTX, 10, "Image", fontColor, "#D9D5B0", "#D9D5B0")
-	pTX := nextHorizontalX(iTRS, 20)
-	pTRS := theCtx.drawButtonA(PencilTool, pTX, 10, "Pencil", fontColor, "#D9D5B0", "#D9D5B0")
-	mTX := nextHorizontalX(pTRS, 20)
-	mTRS := theCtx.drawButtonA(MoveTool, mTX, 10, "Move", fontColor, "#D9D5B0", "#D9D5B0")
-	dividerX := nextHorizontalX(mTRS, 20)
+	dividerX := nextHorizontalX(iTRS, 20)
 	theCtx.ggCtx.SetHexColor("#444")
 	theCtx.ggCtx.DrawRectangle(float64(dividerX), 10, 2, float64(tTRS.Height))
 	theCtx.ggCtx.Fill()
 
 	// pencil extras
-	mSRS := theCtx.drawButtonB(MinusSizeTool, dividerX+20, 10+5, "--", "#fff", "#aaa")
+	mSRS := theCtx.drawButtonB(MinusSizeBtn, dividerX+20, 10+5, "--", "#fff", "#aaa")
 	tSIX := nextHorizontalX(mSRS, 5)
 
-	size := SlideMemory[CurrentSlide]["size"]
+	size := InputsState["size"]
 	tSIRS := theCtx.drawInput(DrawnSizeInput, tSIX, 10, size)
 	pSX := nextHorizontalX(tSIRS, 5)
-	pSRS := theCtx.drawButtonB(PlusSizeTool, pSX, 10+5, "+", "#fff", "#aaa")
+	pSRS := theCtx.drawButtonB(PlusSizeBtn, pSX, 10+5, "+", "#fff", "#aaa")
 	tCX := nextHorizontalX(pSRS, 20)
-	selectedColor := SlideMemory[CurrentSlide]["color"]
-	theCtx.drawColorBox(TextColorTool, tCX, 10+5, tTRS.Height-15, selectedColor)
+	selectedColor := InputsState["color"]
+	theCtx.drawColorBox(ColorPickerBtn, tCX, 10+5, tTRS.Height-15, selectedColor)
 
 	// place indicator on activeTool
 	activeToolRS := ObjCoords[activeTool]
@@ -65,19 +61,30 @@ func DrawWorkView(window *glfw.Window, slide int) {
 		theCtx.ggCtx.DrawString(fmt.Sprintf("%d", iInUse), 10, float64(currentY+FontSize))
 
 		theCtx.ggCtx.SetHexColor(fontColor)
-		theCtx.ggCtx.DrawRectangle(float64(10+FontSize+5), float64(currentY), WorkAreaWidth*0.15, WorkAreaHeight*0.15)
+		slideX := 10 + FontSize + 5
+		theCtx.ggCtx.DrawRectangle(float64(slideX), float64(currentY), WorkAreaWidth*0.15, WorkAreaHeight*0.15)
 		theCtx.ggCtx.Fill()
 
+		if iInUse == CurrentSlide {
+			theCtx.ggCtx.SetHexColor("#BE7171")
+			theCtx.ggCtx.DrawRectangle(float64(slideX)+WorkAreaWidth*0.15+2, float64(currentY), 10, WorkAreaHeight*0.15)
+			theCtx.ggCtx.Fill()
+		}
+
 		theCtx.ggCtx.SetHexColor("#fff")
-		theCtx.ggCtx.DrawRectangle(float64(10+FontSize+5)+1, float64(currentY)+1, (WorkAreaWidth*0.15 - 2),
+		theCtx.ggCtx.DrawRectangle(float64(slideX)+1, float64(currentY)+1, (WorkAreaWidth*0.15 - 2),
 			(WorkAreaHeight*0.15 - 2))
 		theCtx.ggCtx.Fill()
+
+		sTW, sTH := int(math.Ceil(WorkAreaWidth*0.15)), int(math.Ceil(WorkAreaHeight*0.15))
+		SlideThumbnailRect := g143.NewRect(slideX, currentY, sTW, sTH)
+		ObjCoords[1000+iInUse] = SlideThumbnailRect
 
 		currentY += 10 + int(math.Ceil(WorkAreaHeight*0.15))
 	}
 
 	// canvas
-	canvasX := int(math.Ceil(WorkAreaWidth*0.15)) + 10 + FontSize + 5 + 20
+	canvasX := int(math.Ceil(WorkAreaWidth*0.15)) + 10 + FontSize + 5 + 30
 
 	theCtx.ggCtx.SetHexColor(fontColor)
 	theCtx.ggCtx.DrawRectangle(float64(canvasX), 80, WorkAreaWidth*0.8, WorkAreaHeight*0.8)
@@ -112,7 +119,7 @@ func drawSlide(slideNo int, workingWidth, workingHeight int) image.Image {
 	fontPath := GetDefaultFontPath()
 	ggCtx.LoadFontFace(fontPath, 20)
 
-	for i, obj := range SlideFormat[slideNo] {
+	for i, obj := range SlideFormat[slideNo-1] {
 		if obj.Type == TextType {
 			strs := strings.Split(strings.ReplaceAll(obj.Text, "\r", ""), "\n")
 			textFontSize := float64(obj.Size) * 15
@@ -154,9 +161,6 @@ func drawSlide(slideNo int, workingWidth, workingHeight int) image.Image {
 			obj.H = newH
 
 			SlideFormat[CurrentSlide][i] = obj
-
-		} else if obj.Type == PencilType {
-
 		}
 	}
 
@@ -191,13 +195,20 @@ func workViewMouseCallback(window *glfw.Window, button glfw.MouseButton, action 
 	// rootPath, _ := GetRootPath()
 
 	switch widgetCode {
-	case SelectTool, TextTool, ImageTool, PencilTool, MoveTool:
+	case AddSlideBtn:
+		TotalSlides += 1
+		CurrentSlide += 1
+		SlideFormat = append(SlideFormat, make([]Drawn, 0))
+
+		DrawWorkView(window, CurrentSlide)
+
+	case TextTool, ImageTool:
 		activeTool = widgetCode
 
 		theCtx := Continue2dCtx(CurrentWindowFrame, &ObjCoords)
 
 		// clear all tools
-		for _, toolId := range []int{SelectTool, TextTool, ImageTool, PencilTool, MoveTool} {
+		for _, toolId := range []int{TextTool, ImageTool} {
 			toolRS := ObjCoords[toolId]
 			theCtx.drawButtonA(toolId, toolRS.OriginX, toolRS.OriginY, toolNames[toolId],
 				fontColor, "#D9D5B0", "#D9D5B0")
@@ -278,7 +289,7 @@ func workViewMouseCallback(window *glfw.Window, button glfw.MouseButton, action 
 
 				foundIndex := -1
 				for i, obj := range SlideFormat[CurrentSlide] {
-					if obj.Type != PencilTool {
+					if obj.Type != ImageType {
 						continue
 					}
 					objRect := g143.NewRect(obj.X, obj.Y, obj.W, obj.H)
@@ -318,8 +329,8 @@ func workViewMouseCallback(window *glfw.Window, button glfw.MouseButton, action 
 
 		}
 
-	case PlusSizeTool:
-		size := SlideMemory[CurrentSlide]["size"]
+	case PlusSizeBtn:
+		size := InputsState["size"]
 		sizeInt, _ := strconv.Atoi(size)
 		if sizeInt != 10 {
 			sizeInt += 1
@@ -329,7 +340,7 @@ func workViewMouseCallback(window *glfw.Window, button glfw.MouseButton, action 
 		widgetRS := ObjCoords[DrawnSizeInput]
 		theCtx.drawInput(DrawnSizeInput, widgetRS.OriginX, widgetRS.OriginY, strconv.Itoa(sizeInt))
 
-		SlideMemory[CurrentSlide]["size"] = strconv.Itoa(sizeInt)
+		InputsState["size"] = strconv.Itoa(sizeInt)
 		// send the frame to glfw window
 		g143.DrawImage(wWidth, wHeight, theCtx.ggCtx.Image(), theCtx.windowRect())
 		window.SwapBuffers()
@@ -337,8 +348,8 @@ func workViewMouseCallback(window *glfw.Window, button glfw.MouseButton, action 
 		// save the frame
 		CurrentWindowFrame = theCtx.ggCtx.Image()
 
-	case MinusSizeTool:
-		size := SlideMemory[CurrentSlide]["size"]
+	case MinusSizeBtn:
+		size := InputsState["size"]
 		sizeInt, _ := strconv.Atoi(size)
 		if sizeInt != 1 {
 			sizeInt -= 1
@@ -347,7 +358,7 @@ func workViewMouseCallback(window *glfw.Window, button glfw.MouseButton, action 
 		widgetRS := ObjCoords[DrawnSizeInput]
 		theCtx.drawInput(DrawnSizeInput, widgetRS.OriginX, widgetRS.OriginY, strconv.Itoa(sizeInt))
 
-		SlideMemory[CurrentSlide]["size"] = strconv.Itoa(sizeInt)
+		InputsState["size"] = strconv.Itoa(sizeInt)
 		// send the frame to glfw window
 		g143.DrawImage(wWidth, wHeight, theCtx.ggCtx.Image(), theCtx.windowRect())
 		window.SwapBuffers()
@@ -355,10 +366,29 @@ func workViewMouseCallback(window *glfw.Window, button glfw.MouseButton, action 
 		// save the frame
 		CurrentWindowFrame = theCtx.ggCtx.Image()
 
-	case TextColorTool:
+	case ColorPickerBtn:
 		window.SetMouseButtonCallback(nil)
 		window.SetCursorPosCallback(nil)
 		PickerChan <- []string{"color", ""}
+	}
+
+	// for generated buttons
+	if widgetCode > 1000 && widgetCode < 2000 {
+		slideNum := widgetCode - 1000
+		ctrlState := window.GetKey(glfw.KeyLeftControl)
+
+		if ctrlState == glfw.Release {
+			CurrentSlide = slideNum
+			DrawWorkView(window, CurrentSlide)
+		} else if ctrlState == glfw.Press {
+			if TotalSlides != 1 {
+				SlideFormat = slices.Delete(SlideFormat, slideNum-1, slideNum)
+				CurrentSlide = 1
+				TotalSlides -= 1
+				DrawWorkView(window, CurrentSlide)
+			}
+		}
+
 	}
 
 }
