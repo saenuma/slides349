@@ -63,12 +63,13 @@ func DrawWorkView(window *glfw.Window, slide int) {
 		// draw border rectangle
 		theCtx.ggCtx.SetHexColor(fontColor)
 		slideX := 10 + FontSize + 5
-		theCtx.ggCtx.DrawRectangle(float64(slideX), float64(currentY), WorkAreaWidth*0.15, WorkAreaHeight*0.15)
+		theCtx.ggCtx.DrawRectangle(float64(slideX), float64(currentY), WorkAreaWidth*0.15, WorkAreaHeight*0.15+1)
 		theCtx.ggCtx.Fill()
 
+		// draw indicator for current slide
 		if i == CurrentSlide {
 			theCtx.ggCtx.SetHexColor("#BE7171")
-			theCtx.ggCtx.DrawRectangle(float64(slideX)+WorkAreaWidth*0.15+2, float64(currentY), 10, WorkAreaHeight*0.15)
+			theCtx.ggCtx.DrawRectangle(float64(slideX)+WorkAreaWidth*0.15+4, float64(currentY), 10, WorkAreaHeight*0.15)
 			theCtx.ggCtx.Fill()
 		}
 
@@ -200,8 +201,7 @@ func workViewMouseCallback(window *glfw.Window, button glfw.MouseButton, action 
 	case AddSlideBtn:
 		TotalSlides += 1
 		CurrentSlide += 1
-		SlideFormat = append(SlideFormat, make([]Drawn, 0))
-
+		SlideFormat = slices.Insert(SlideFormat, CurrentSlide, make([]Drawn, 0))
 		DrawWorkView(window, CurrentSlide)
 
 	case TextTool, ImageTool:
