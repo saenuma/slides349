@@ -73,6 +73,7 @@ func main() {
 					drawnText := SlideFormat[CurrentSlide][DrawnEditIndex]
 					drawnText.Text = TextFromTPicker
 					drawnText.Size = sizeInt
+					drawnText.Color = InputsState["color"]
 					SlideFormat[CurrentSlide][DrawnEditIndex] = drawnText
 					DrawnEditIndex = -1
 				} else {
