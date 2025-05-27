@@ -74,7 +74,7 @@ var (
 		TextTool: "Text", ImageTool: "Image", MoveTool: "Move",
 	}
 
-	ToMoveIndex int
+	ToMoveIndex int = -1
 )
 
 type DrawnType int
