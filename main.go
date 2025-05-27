@@ -1,8 +1,6 @@
 package main
 
 import (
-	"os"
-	"path/filepath"
 	"runtime"
 	"strconv"
 	"time"
@@ -12,14 +10,10 @@ import (
 )
 
 func main() {
-	rootPath, err := GetRootPath()
+	_, err := GetRootPath()
 	if err != nil {
 		panic(err)
 	}
-
-	// initialize
-	SlideFormat = make([][]Drawn, 0)
-	SlideFormat = append(SlideFormat, make([]Drawn, 0)) // first slide
 
 	InputsState = make(map[string]string)
 	InputsState = map[string]string{
@@ -27,9 +21,6 @@ func main() {
 		"size":  "1",
 	}
 	activeTool = TextTool
-
-	outPath := filepath.Join(rootPath, "slides")
-	os.MkdirAll(outPath, 0777)
 
 	runtime.LockOSThread()
 
@@ -56,17 +47,16 @@ func main() {
 	}()
 
 	window := g143.NewWindow(1400, 800, ProgTitle, false)
-	DrawWorkView(window, CurrentSlide)
 
+	DrawBeginView(window)
 	// respond to the mouse
-	window.SetMouseButtonCallback(workViewMouseCallback)
-	// // respond to the keyboard
-	// window.SetKeyCallback(ProjKeyCallback)
-	// // save the project file
+	window.SetMouseButtonCallback(projViewMouseCallback)
+	// respond to the keyboard
+	window.SetKeyCallback(ProjKeyCallback)
+	// save the project file
 	// window.SetCloseCallback(SaveProjectCloseCallback)
 	// quick hover effect
-	window.SetCursorPosCallback(getHoverCB(&ObjCoords))
-	window.SetScrollCallback(workViewScrollCB)
+	window.SetCursorPosCallback(getHoverCB(&ProjObjCoords))
 
 	for !window.ShouldClose() {
 		t := time.Now()

@@ -2,6 +2,7 @@ package main
 
 import (
 	"image"
+	"time"
 
 	g143 "github.com/bankole7782/graphics143"
 )
@@ -24,12 +25,19 @@ const (
 	MinusSizeBtn   = 314
 	PlusSizeBtn    = 315
 	DrawnSizeInput = 316
+
+	PROJ_NameInput  = 51
+	PROJ_NewProject = 52
+	PROJ_OpenWDBtn  = 53
 )
 
 var (
+	ProjObjCoords       map[int]g143.Rect
+	NameInputEnteredTxt string
+
 	ObjCoords          map[int]g143.Rect
 	CurrentWindowFrame image.Image
-	ProjectName        string = "tmp_proj"
+	ProjectName        string
 	CurrentSlide       int
 	TotalSlides        int = 1
 	SlidesOffset       int = 0
@@ -86,4 +94,9 @@ type Drawn struct {
 	Size  int
 	// image things
 	ImagePath string
+}
+
+type ToSortProject struct {
+	Name    string
+	ModTime time.Time
 }

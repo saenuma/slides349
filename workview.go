@@ -75,7 +75,6 @@ func DrawWorkView(window *glfw.Window, slide int) {
 	beginIndex := SlidesOffset * 5
 	endIndex := (SlidesOffset + 1) * 5
 	slides := genRange(beginIndex, endIndex, TotalSlides)
-	fmt.Println(slides)
 	// slides panel
 	slideWidth, slideHeight := int(math.Ceil(WorkAreaWidth*0.8))-2, int(math.Ceil(WorkAreaHeight*0.8))-2
 	currentY := 80

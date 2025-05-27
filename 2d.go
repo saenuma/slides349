@@ -126,10 +126,37 @@ func (ctx *Ctx) drawInput(inputId, originX, originY int, writtenStr string) g143
 	return entryRect
 }
 
+func (ctx *Ctx) drawInputB(inputId, originX, originY, inputWidth int, placeholder string, isDefault bool) g143.Rect {
+	height := 30
+	ctx.ggCtx.SetHexColor(fontColor)
+	ctx.ggCtx.DrawRectangle(float64(originX), float64(originY), float64(inputWidth), float64(height))
+	ctx.ggCtx.Fill()
+
+	ctx.ggCtx.SetHexColor("#fff")
+	ctx.ggCtx.DrawRectangle(float64(originX)+2, float64(originY)+2, float64(inputWidth)-4, float64(height)-4)
+	ctx.ggCtx.Fill()
+
+	entryRect := g143.Rect{Width: inputWidth, Height: height, OriginX: originX, OriginY: originY}
+	(*ctx.ObjCoords)[inputId] = entryRect
+
+	if isDefault {
+		ctx.ggCtx.SetHexColor("#444")
+		ctx.ggCtx.DrawString(placeholder, float64(originX+15), float64(originY)+FontSize)
+	} else {
+		ctx.ggCtx.SetHexColor("#aaa")
+		ctx.ggCtx.DrawString(placeholder, float64(originX+15), float64(originY)+FontSize)
+	}
+	return entryRect
+}
+
 func (ctx *Ctx) windowRect() g143.Rect {
 	return g143.NewRect(0, 0, ctx.WindowWidth, ctx.WindowHeight)
 }
 
 func nextHorizontalX(aRect g143.Rect, margin int) int {
 	return aRect.OriginX + aRect.Width + margin
+}
+
+func nextVerticalY(aRect g143.Rect, margin int) int {
+	return aRect.OriginY + aRect.Height + margin
 }
