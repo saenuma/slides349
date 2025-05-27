@@ -19,6 +19,7 @@ const (
 	ImageTool    = 32
 	AddSlideBtn  = 34
 	MoveTool     = 35
+	BackBtn      = 36
 	CanvasWidget = 39
 
 	ColorPickerBtn = 312

@@ -25,8 +25,10 @@ func DrawWorkView(window *glfw.Window, slide int) {
 	theCtx := New2dCtx(wWidth, wHeight, &ObjCoords)
 
 	// top panel
-	sTRS := theCtx.drawButtonA(AddSlideBtn, 50, 10, "Add Slide", fontColor, "#D9D5B0", "#D9D5B0")
-	tTX := nextHorizontalX(sTRS, 20)
+	bBRect := theCtx.drawButtonA(BackBtn, 50, 10, "Back", "#fff", "#845B5B", "#845B5B")
+	aTX := nextHorizontalX(bBRect, 40)
+	aSRS := theCtx.drawButtonA(AddSlideBtn, aTX, 10, "Add Slide", fontColor, "#D9D5B0", "#D9D5B0")
+	tTX := nextHorizontalX(aSRS, 20)
 	tTRS := theCtx.drawButtonA(TextTool, tTX, 10, "Text", fontColor, "#D9D5B0", "#D9D5B0")
 	iTX := nextHorizontalX(tTRS, 20)
 	iTRS := theCtx.drawButtonA(ImageTool, iTX, 10, "Image", fontColor, "#D9D5B0", "#D9D5B0")
@@ -71,7 +73,6 @@ func DrawWorkView(window *glfw.Window, slide int) {
 	}
 
 	// get number of slides to display in GUI
-
 	beginIndex := SlidesOffset * 5
 	endIndex := (SlidesOffset + 1) * 5
 	slides := genRange(beginIndex, endIndex, TotalSlides)
@@ -226,6 +227,21 @@ func workViewMouseCallback(window *glfw.Window, button glfw.MouseButton, action 
 	// rootPath, _ := GetRootPath()
 
 	switch widgetCode {
+	case BackBtn:
+		SaveSlideProject()
+
+		// clear some variables
+		SlideFormat = make([][]Drawn, 0)
+		ProjectName = ""
+		window.SetTitle(ProgTitle)
+
+		// redraw
+		DrawBeginView(window)
+		window.SetMouseButtonCallback(projViewMouseCallback)
+		window.SetKeyCallback(ProjKeyCallback)
+		window.SetCursorPosCallback(getHoverCB(&ProjObjCoords))
+		window.SetScrollCallback(nil)
+
 	case AddSlideBtn:
 		TotalSlides += 1
 		CurrentSlide += 1
@@ -470,7 +486,7 @@ func workViewScrollCB(window *glfw.Window, xoff float64, yoff float64) {
 	if g143.InRect(slidesPanelRect, xPosInt, yPosInt) {
 		if int(yoff) == -1 {
 			// show bottom slides
-			if ((SlidesOffset+1)*5 + 1) < TotalSlides {
+			if ((SlidesOffset + 1) * 5) < TotalSlides {
 				SlidesOffset += 1
 				CurrentSlide = SlidesOffset * 5
 				DrawWorkView(window, CurrentSlide)

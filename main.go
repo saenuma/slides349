@@ -54,7 +54,9 @@ func main() {
 	// respond to the keyboard
 	window.SetKeyCallback(ProjKeyCallback)
 	// save the project file
-	// window.SetCloseCallback(SaveProjectCloseCallback)
+	window.SetCloseCallback(func(w *glfw.Window) {
+		SaveSlideProject()
+	})
 	// quick hover effect
 	window.SetCursorPosCallback(getHoverCB(&ProjObjCoords))
 

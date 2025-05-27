@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 
@@ -127,16 +128,15 @@ func projViewMouseCallback(window *glfw.Window, button glfw.MouseButton, action 
 
 		ProjectName = projectFile.Name
 
-		// // load instructions
-		// obj := make([]map[string]string, 0)
-		// rootPath, _ := GetRootPath()
-		// inPath := filepath.Join(rootPath, ProjectName)
-		// rawBytes, _ := os.ReadFile(inPath)
-		// json.Unmarshal(rawBytes, &obj)
+		// load slide data
+		var objs [][]Drawn
+		rootPath, _ := GetRootPath()
+		inPath := filepath.Join(rootPath, ProjectName)
+		rawBytes, _ := os.ReadFile(inPath)
+		json.Unmarshal(rawBytes, &objs)
 
-		// initialize
-		SlideFormat = make([][]Drawn, 0)
-		SlideFormat = append(SlideFormat, make([]Drawn, 0)) // first slide
+		TotalSlides = len(objs)
+		SlideFormat = objs
 
 		// move to work view
 		DrawWorkView(window, CurrentSlide)
