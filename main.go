@@ -79,6 +79,7 @@ func main() {
 				if DrawnEditIndex != -1 {
 					drawnText := SlideFormat[CurrentSlide][DrawnEditIndex]
 					drawnText.Text = TextFromTPicker
+					drawnText.Size = sizeInt
 					SlideFormat[CurrentSlide][DrawnEditIndex] = drawnText
 					DrawnEditIndex = -1
 				} else {
@@ -120,20 +121,24 @@ func main() {
 				size := InputsState["size"]
 				sizeInt, _ := strconv.Atoi(size)
 
-				toWriteWidgetCode := 8001
-				if len(objs) > 0 {
-					toWriteWidgetCode = objs[len(objs)-1].WidgetCode + 1
+				if DrawnEditIndex != -1 {
+					drawnImg := SlideFormat[CurrentSlide][DrawnEditIndex]
+					drawnImg.ImagePath = PathFromFPicker
+					drawnImg.Size = sizeInt
+					SlideFormat[CurrentSlide][DrawnEditIndex] = drawnImg
+					DrawnEditIndex = -1
+				} else {
+					toWriteWidgetCode := 8001
+					if len(objs) > 0 {
+						toWriteWidgetCode = objs[len(objs)-1].WidgetCode + 1
+					}
+					drawn := Drawn{Type: ImageType, X: activeX, Y: activeY, ImagePath: PathFromFPicker,
+						Size: sizeInt, WidgetCode: toWriteWidgetCode}
+					SlideFormat[CurrentSlide] = append(objs, drawn)
 				}
-
-				drawn := Drawn{Type: ImageType, X: activeX, Y: activeY, ImagePath: PathFromFPicker,
-					Size: sizeInt, WidgetCode: toWriteWidgetCode}
-
-				SlideFormat[CurrentSlide] = append(objs, drawn)
-
-				PathFromFPicker = ""
-				activeX, activeY = -1, -1
-
 			}
+			PathFromFPicker = ""
+			activeX, activeY = -1, -1
 
 			DrawWorkView(window, CurrentSlide)
 			window.SetMouseButtonCallback(workViewMouseCallback)

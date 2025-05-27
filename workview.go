@@ -151,7 +151,7 @@ func drawSlide(slideNo int, workingWidth, workingHeight int) image.Image {
 			SlideFormat[slideNo][i] = obj
 
 		} else if obj.Type == ImageType {
-			img, err := imaging.Open(obj.ImagePath)
+			img, err := imaging.Open(obj.ImagePath, imaging.AutoOrientation(true))
 			if err != nil {
 				fmt.Println(err)
 			}
