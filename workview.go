@@ -54,17 +54,39 @@ func DrawWorkView(window *glfw.Window, slide int) {
 	theCtx.drawButtonA(activeTool, activeToolRS.OriginX, activeToolRS.OriginY, toolNames[activeTool],
 		fontColor, "#D9D5B0", "#AEAC9C")
 
+	genRange := func(a, b, total int) []int {
+		ret := make([]int, 0)
+		count := 0
+		for i := a; i < b; i++ {
+			if count == 5 {
+				break
+			}
+			if i == total {
+				break
+			}
+			ret = append(ret, i)
+			count += 1
+		}
+		return ret
+	}
+
+	// get number of slides to display in GUI
+
+	beginIndex := SlidesOffset * 5
+	endIndex := (SlidesOffset + 1) * 5
+	slides := genRange(beginIndex, endIndex, TotalSlides)
+	fmt.Println(slides)
 	// slides panel
 	slideWidth, slideHeight := int(math.Ceil(WorkAreaWidth*0.8))-2, int(math.Ceil(WorkAreaHeight*0.8))-2
 	currentY := 80
-	for i := range TotalSlides {
+	slideX := 10 + FontSize + 5
+	for _, i := range slides {
 		displayI := i + 1
 		theCtx.ggCtx.SetHexColor(fontColor)
 		theCtx.ggCtx.DrawString(fmt.Sprintf("%d", displayI), 10, float64(currentY+FontSize))
 
 		// draw border rectangle
 		theCtx.ggCtx.SetHexColor(fontColor)
-		slideX := 10 + FontSize + 5
 		theCtx.ggCtx.DrawRectangle(float64(slideX), float64(currentY), WorkAreaWidth*0.15, WorkAreaHeight*0.15+1)
 		theCtx.ggCtx.Fill()
 
@@ -101,6 +123,11 @@ func DrawWorkView(window *glfw.Window, slide int) {
 
 	canvasImg := drawSlide(CurrentSlide, slideWidth, slideHeight)
 	theCtx.ggCtx.DrawImage(canvasImg, canvasX+1, 80+1)
+
+	// write totalSlides
+	theCtx.ggCtx.SetHexColor(fontColor)
+	theCtx.ggCtx.DrawString(fmt.Sprintf("Total Slides: %d", TotalSlides), float64(slideX),
+		float64(slideHeight)+FontSize+30+float64(CanvasRect.OriginY))
 
 	// send the frame to glfw window
 	g143.DrawImage(wWidth, wHeight, theCtx.ggCtx.Image(), theCtx.windowRect())
@@ -420,6 +447,43 @@ func workViewMouseCallback(window *glfw.Window, button glfw.MouseButton, action 
 			}
 		}
 
+	}
+
+}
+
+func workViewScrollCB(window *glfw.Window, xoff float64, yoff float64) {
+	// makes the scroll more realistic
+	scrollEventsCount += 1
+	if scrollEventsCount != 5 {
+		return
+	} else {
+		scrollEventsCount = 0
+	}
+
+	xPos, yPos := window.GetCursorPos()
+	xPosInt := int(xPos)
+	yPosInt := int(yPos)
+
+	// 	wWidth, wHeight := window.GetSize()
+	slidesPanelRect := g143.NewRect(10, CanvasRect.OriginY, int(math.Ceil(WorkAreaWidth*0.15)),
+		CanvasRect.Height)
+
+	if g143.InRect(slidesPanelRect, xPosInt, yPosInt) {
+		if int(yoff) == -1 {
+			// show bottom slides
+			if ((SlidesOffset+1)*5 + 1) < TotalSlides {
+				SlidesOffset += 1
+				CurrentSlide = SlidesOffset * 5
+				DrawWorkView(window, CurrentSlide)
+			}
+		} else if int(yoff) == 1 {
+			// show top slides
+			if SlidesOffset-1 >= 0 {
+				SlidesOffset -= 1
+				CurrentSlide = SlidesOffset * 5
+				DrawWorkView(window, CurrentSlide)
+			}
+		}
 	}
 
 }

@@ -32,8 +32,10 @@ var (
 	ProjectName        string = "tmp_proj"
 	CurrentSlide       int
 	TotalSlides        int = 1
-	CanvasRect         g143.Rect
-	activeTool         int
+	SlidesOffset       int = 0
+
+	CanvasRect g143.Rect
+	activeTool int
 
 	SlideFormat [][]Drawn
 
@@ -57,6 +59,7 @@ var (
 	ClearAFterACPicker bool
 
 	cursorEventsCount = 0
+	scrollEventsCount = 0
 
 	toolNames = map[int]string{
 		TextTool: "Text", ImageTool: "Image", MoveTool: "Move",

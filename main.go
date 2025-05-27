@@ -66,6 +66,7 @@ func main() {
 	// window.SetCloseCallback(SaveProjectCloseCallback)
 	// quick hover effect
 	window.SetCursorPosCallback(getHoverCB(&ObjCoords))
+	window.SetScrollCallback(workViewScrollCB)
 
 	for !window.ShouldClose() {
 		t := time.Now()
