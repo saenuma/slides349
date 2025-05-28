@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"math"
 	"math/rand"
 	"os"
 	"os/exec"
@@ -117,11 +116,12 @@ func SaveSlideProject() {
 		os.WriteFile(outPath, jsonBytes, 0777)
 
 		exportPath, _ := GetExportPath()
-		slideWidth, slideHeight := int(math.Ceil(WorkAreaWidth*0.8))-2, int(math.Ceil(WorkAreaHeight*0.8))-2
+		outDir := filepath.Join(exportPath, ProjectName)
+		os.RemoveAll(outDir)
+		os.MkdirAll(outDir, 0777)
+
 		for i := range SlideFormat {
-			outImg := drawSlide(i, slideWidth, slideHeight)
-			outDir := filepath.Join(exportPath, ProjectName)
-			os.MkdirAll(outDir, 0777)
+			outImg := drawSlide(i, false)
 			imaging.Save(outImg, filepath.Join(outDir, fmt.Sprintf("%d.png", i+1)))
 		}
 	}

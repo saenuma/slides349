@@ -98,7 +98,7 @@ func DrawWorkView(window *glfw.Window, slide int) {
 		}
 
 		// draw thumbnail
-		slideImg := drawSlide(i, slideWidth, slideHeight)
+		slideImg := drawSlide(i, true)
 		thumbnailWidth, thumbnailHeight := int(math.Ceil(WorkAreaWidth*0.15))-2, int(math.Ceil(WorkAreaHeight*0.15))-2
 		slideImg = imaging.Fit(slideImg, thumbnailWidth, thumbnailHeight, imaging.Lanczos)
 		theCtx.ggCtx.DrawImage(slideImg, slideX+1, currentY+1)
@@ -121,7 +121,7 @@ func DrawWorkView(window *glfw.Window, slide int) {
 	CanvasRect = g143.NewRect(canvasX+1, 80+1, slideWidth, slideHeight)
 	ObjCoords[CanvasWidget] = CanvasRect
 
-	canvasImg := drawSlide(CurrentSlide, slideWidth, slideHeight)
+	canvasImg := drawSlide(CurrentSlide, true)
 	theCtx.ggCtx.DrawImage(canvasImg, canvasX+1, 80+1)
 
 	// write totalSlides
@@ -137,7 +137,18 @@ func DrawWorkView(window *glfw.Window, slide int) {
 	CurrentWindowFrame = theCtx.ggCtx.Image()
 }
 
-func drawSlide(slideNo int, workingWidth, workingHeight int) image.Image {
+func drawSlide(slideNo int, forGui bool) image.Image {
+
+	var workingWidth, workingHeight int
+	var scale float64
+	if forGui {
+		workingWidth, workingHeight = int(math.Ceil(WorkAreaWidth*0.8))-2, int(math.Ceil(WorkAreaHeight*0.8))-2
+		scale = 1.0
+	} else {
+		workingWidth, workingHeight = WorkAreaWidth, WorkAreaHeight
+		scale = float64(workingWidth) / ((WorkAreaWidth * 0.8) - 2)
+	}
+
 	// frame buffer
 	ggCtx := gg.NewContext(workingWidth, workingHeight)
 
@@ -154,7 +165,7 @@ func drawSlide(slideNo int, workingWidth, workingHeight int) image.Image {
 	for i, obj := range SlideFormat[slideNo] {
 		if obj.Type == TextType {
 			strs := strings.Split(strings.ReplaceAll(obj.Text, "\r", ""), "\n")
-			textFontSize := float64(obj.Size) * 15
+			textFontSize := float64(obj.Size) * 15 * scale
 			textFontSizeInt := int(math.Ceil(textFontSize))
 			ggCtx.LoadFontFace(fontPath, textFontSize)
 
@@ -183,7 +194,7 @@ func drawSlide(slideNo int, workingWidth, workingHeight int) image.Image {
 				fmt.Println(err)
 			}
 
-			imgW := float64(obj.Size) * 100
+			imgW := float64(obj.Size) * 100 * scale
 			scale := float64(imgW) / float64(img.Bounds().Dx())
 			newH := int(scale * float64(img.Bounds().Dy()))
 			img = imaging.Fit(img, int(imgW), newH, imaging.Lanczos)
@@ -402,7 +413,7 @@ func workViewMouseCallback(window *glfw.Window, button glfw.MouseButton, action 
 	case PlusSizeBtn:
 		size := InputsState["size"]
 		sizeInt, _ := strconv.Atoi(size)
-		if sizeInt != 10 {
+		if sizeInt != 5 {
 			sizeInt += 1
 		}
 
