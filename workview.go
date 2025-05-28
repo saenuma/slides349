@@ -80,6 +80,19 @@ func DrawWorkView(window *glfw.Window, slide int) {
 	slideWidth, slideHeight := int(math.Ceil(WorkAreaWidth*0.8))-2, int(math.Ceil(WorkAreaHeight*0.8))-2
 	currentY := 80
 	slideX := 10 + FontSize + 5
+	// canvas
+	canvasX := int(math.Ceil(WorkAreaWidth*0.15)) + 10 + FontSize + 5 + 30
+
+	theCtx.ggCtx.SetHexColor(fontColor)
+	theCtx.ggCtx.DrawRectangle(float64(canvasX), 80, WorkAreaWidth*0.8, WorkAreaHeight*0.8)
+	theCtx.ggCtx.Fill()
+
+	CanvasRect = g143.NewRect(canvasX+1, 80+1, slideWidth, slideHeight)
+	ObjCoords[CanvasWidget] = CanvasRect
+
+	canvasImg := drawSlide(CurrentSlide, true)
+	theCtx.ggCtx.DrawImage(canvasImg, canvasX+1, 80+1)
+
 	for _, i := range slides {
 		displayI := i + 1
 		theCtx.ggCtx.SetHexColor(fontColor)
@@ -98,10 +111,10 @@ func DrawWorkView(window *glfw.Window, slide int) {
 		}
 
 		// draw thumbnail
-		slideImg := drawSlide(i, true)
+		slideImg := drawSlide(i, false)
 		thumbnailWidth, thumbnailHeight := int(math.Ceil(WorkAreaWidth*0.15))-2, int(math.Ceil(WorkAreaHeight*0.15))-2
-		slideImg = imaging.Fit(slideImg, thumbnailWidth, thumbnailHeight, imaging.Lanczos)
-		theCtx.ggCtx.DrawImage(slideImg, slideX+1, currentY+1)
+		thumbImg := imaging.Thumbnail(slideImg, thumbnailWidth, thumbnailHeight, imaging.Lanczos)
+		theCtx.ggCtx.DrawImage(thumbImg, slideX+1, currentY+1)
 
 		// register thumbnail
 		sTW, sTH := int(math.Ceil(WorkAreaWidth*0.15)), int(math.Ceil(WorkAreaHeight*0.15))
@@ -110,19 +123,6 @@ func DrawWorkView(window *glfw.Window, slide int) {
 
 		currentY += 10 + int(math.Ceil(WorkAreaHeight*0.15))
 	}
-
-	// canvas
-	canvasX := int(math.Ceil(WorkAreaWidth*0.15)) + 10 + FontSize + 5 + 30
-
-	theCtx.ggCtx.SetHexColor(fontColor)
-	theCtx.ggCtx.DrawRectangle(float64(canvasX), 80, WorkAreaWidth*0.8, WorkAreaHeight*0.8)
-	theCtx.ggCtx.Fill()
-
-	CanvasRect = g143.NewRect(canvasX+1, 80+1, slideWidth, slideHeight)
-	ObjCoords[CanvasWidget] = CanvasRect
-
-	canvasImg := drawSlide(CurrentSlide, true)
-	theCtx.ggCtx.DrawImage(canvasImg, canvasX+1, 80+1)
 
 	// write totalSlides
 	theCtx.ggCtx.SetHexColor(fontColor)
