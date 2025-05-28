@@ -465,7 +465,7 @@ func workViewMouseCallback(window *glfw.Window, button glfw.MouseButton, action 
 			ToMoveIndex = -1
 		} else if ctrlState == glfw.Press {
 			if TotalSlides != 1 {
-				SlideFormat = slices.Delete(SlideFormat, slideNum-1, slideNum)
+				SlideFormat = slices.Delete(SlideFormat, slideNum, slideNum+1)
 				CurrentSlide = 0
 				TotalSlides -= 1
 				DrawWorkView(window, CurrentSlide)
