@@ -16,7 +16,7 @@ import (
 
 func DrawWorkView(window *glfw.Window, slide int) {
 	CurrentSlide = slide
-
+	InWorkView = true
 	window.SetTitle(fmt.Sprintf("Project: %s ---- %s", ProjectName, ProgTitle))
 
 	ObjCoords = make(map[int]g143.Rect)
@@ -45,11 +45,14 @@ func DrawWorkView(window *glfw.Window, slide int) {
 
 	size := InputsState["size"]
 	tSIRS := theCtx.drawInput(DrawnSizeInput, tSIX, 10, size)
-	pSX := nextHorizontalX(tSIRS, 5)
+	pSX := nextHorizontalX(tSIRS, 15)
 	pSRS := theCtx.drawButtonB(PlusSizeBtn, pSX, 10+5, "+", "#fff", "#aaa")
 	tCX := nextHorizontalX(pSRS, 20)
 	selectedColor := InputsState["color"]
-	theCtx.drawColorBox(ColorPickerBtn, tCX, 10+5, tTRS.Height-15, selectedColor)
+	cPBRS := theCtx.drawColorBox(ColorPickerBtn, tCX, 10+5, tTRS.Height-15, selectedColor)
+	fCX := nextHorizontalX(cPBRS, 20)
+	selectedFontClass := InputsState["font"]
+	theCtx.drawInput(FontNameInput, fCX, 10, selectedFontClass)
 
 	// place indicator on activeTool
 	activeToolRS := ObjCoords[activeTool]
@@ -158,14 +161,16 @@ func drawSlide(slideNo int, forGui bool) image.Image {
 	ggCtx.Fill()
 
 	canvasRS := ObjCoords[CanvasWidget]
-	// load font
-	fontPath := GetDefaultFontPath()
-	ggCtx.LoadFontFace(fontPath, 20)
-
 	for i, obj := range SlideFormat[slideNo] {
 		if obj.Type == TextType {
 			strs := strings.Split(strings.ReplaceAll(obj.Text, "\r", ""), "\n")
 			textFontSize := float64(obj.Size) * 15 * scale
+			fontName := "regular"
+			if obj.FontName != "" {
+				fontName = obj.FontName
+			}
+			fontDef := getFontDef(fontName)
+			fontPath := getFontPath(fontDef.Index)
 			textFontSizeInt := int(math.Ceil(textFontSize))
 			ggCtx.LoadFontFace(fontPath, textFontSize)
 
@@ -451,6 +456,12 @@ func workViewMouseCallback(window *glfw.Window, button glfw.MouseButton, action 
 		window.SetMouseButtonCallback(nil)
 		window.SetCursorPosCallback(nil)
 		PickerChan <- []string{"color", ""}
+
+	case FontNameInput:
+		drawFontPicker(window, CurrentWindowFrame)
+		window.SetMouseButtonCallback(fontPickerMouseCallback)
+		window.SetCursorPosCallback(getHoverCB(&FDObjCoords))
+		window.SetScrollCallback(nil)
 	}
 
 	// for generated buttons

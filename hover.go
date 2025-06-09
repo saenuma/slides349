@@ -42,7 +42,7 @@ func getHoverCB(state *map[int]g143.Rect) glfw.CursorPosCallback {
 			}
 		}
 
-		if ProjectName != "" {
+		if ProjectName != "" && InWorkView {
 			// implement hover for drawn objects
 			for _, drawn := range SlideFormat[CurrentSlide] {
 				tmpRS := g143.NewRect(drawn.X, drawn.Y, drawn.W, drawn.H)

@@ -19,6 +19,7 @@ func main() {
 	InputsState = map[string]string{
 		"color": "#444",
 		"size":  "1",
+		"font":  "regular",
 	}
 	activeTool = TextTool
 
@@ -74,6 +75,7 @@ func main() {
 					drawnText.Text = TextFromTPicker
 					drawnText.Size = sizeInt
 					drawnText.Color = InputsState["color"]
+					drawnText.FontName = InputsState["font"]
 					SlideFormat[CurrentSlide][DrawnEditIndex] = drawnText
 					DrawnEditIndex = -1
 				} else {
@@ -83,7 +85,8 @@ func main() {
 						toWriteWidgetCode = objs[len(objs)-1].WidgetCode + 1
 					}
 					drawn := Drawn{Type: TextType, X: activeX, Y: activeY, Text: TextFromTPicker,
-						Color: InputsState["color"], Size: sizeInt, WidgetCode: toWriteWidgetCode}
+						Color: InputsState["color"], FontName: InputsState["font"], Size: sizeInt,
+						WidgetCode: toWriteWidgetCode}
 
 					SlideFormat[CurrentSlide] = append(objs, drawn)
 				}

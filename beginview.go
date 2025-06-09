@@ -15,7 +15,7 @@ func DrawBeginView(window *glfw.Window) {
 
 	theCtx := New2dCtx(wWidth, wHeight, &ProjObjCoords)
 
-	fontPath := GetDefaultFontPath()
+	fontPath := getFontPath(1)
 	theCtx.ggCtx.LoadFontFace(fontPath, 30)
 
 	theCtx.ggCtx.SetHexColor(fontColor)

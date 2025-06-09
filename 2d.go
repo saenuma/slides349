@@ -24,7 +24,7 @@ func New2dCtx(wWidth, wHeight int, objCoords *map[int]g143.Rect) Ctx {
 	ggCtx.Fill()
 
 	// load font
-	fontPath := GetDefaultFontPath()
+	fontPath := getFontPath(1)
 	err := ggCtx.LoadFontFace(fontPath, FontSize)
 	if err != nil {
 		panic(err)
@@ -39,7 +39,7 @@ func Continue2dCtx(img image.Image, objCoords *map[int]g143.Rect) Ctx {
 	ggCtx := gg.NewContextForImage(img)
 
 	// load font
-	fontPath := GetDefaultFontPath()
+	fontPath := getFontPath(1)
 	err := ggCtx.LoadFontFace(fontPath, FontSize)
 	if err != nil {
 		panic(err)
@@ -109,16 +109,16 @@ func (ctx *Ctx) drawColorBox(inputId, originX, originY, width int, pickedColor s
 }
 
 func (ctx *Ctx) drawInput(inputId, originX, originY int, writtenStr string) g143.Rect {
-
 	ctx.ggCtx.SetHexColor("#fff")
 	ctx.ggCtx.DrawRectangle(float64(originX), float64(originY), 40, float64(originY)+FontSize+5)
 	ctx.ggCtx.Fill()
 
+	wSW, _ := ctx.ggCtx.MeasureString(writtenStr)
 	ctx.ggCtx.SetHexColor("#909BD0")
-	ctx.ggCtx.DrawRectangle(float64(originX), 50, 40, 3)
+	ctx.ggCtx.DrawRectangle(float64(originX), 50, wSW+10, 3)
 	ctx.ggCtx.Fill()
 
-	entryRect := g143.Rect{Width: 40, Height: 50, OriginX: originX, OriginY: 10}
+	entryRect := g143.Rect{Width: int(wSW) + 10, Height: 50, OriginX: originX, OriginY: 10}
 	(*ctx.ObjCoords)[inputId] = entryRect
 
 	ctx.ggCtx.SetHexColor("#444")
@@ -147,6 +147,29 @@ func (ctx *Ctx) drawInputB(inputId, originX, originY, inputWidth int, placeholde
 		ctx.ggCtx.DrawString(placeholder, float64(originX+15), float64(originY)+FontSize)
 	}
 	return entryRect
+}
+
+func (ctx *Ctx) drawAFont(inputId, originX, originY int, fontClass string) g143.Rect {
+	sampleText1 := "The quick brown fox jumps over the lazy dog"
+	sampleText2 := ".,?!12345678"
+
+	ctx.ggCtx.SetHexColor(fontColor)
+	fontDef := getFontDef(fontClass)
+	// load font
+	fontPath := getFontPath(1)
+	ctx.ggCtx.LoadFontFace(fontPath, FontSize)
+	ctx.ggCtx.DrawString(fontClass, float64(originX), float64(originY)+FontSize)
+	previewFontPath := getFontPath(fontDef.Index)
+	previewFontSize := 30.0
+	ctx.ggCtx.LoadFontFace(previewFontPath, previewFontSize)
+	ctx.ggCtx.DrawString(sampleText1, float64(originX)+10, float64(originY)+FontSize+previewFontSize)
+	maxH := FontSize + previewFontSize + previewFontSize
+	ctx.ggCtx.DrawString(sampleText2, float64(originX)+10, float64(originY)+maxH)
+	maxW, _ := ctx.ggCtx.MeasureString(sampleText1)
+	fontRect := g143.NewRect(originX, originY, int(maxW)+10, int(maxH)+10)
+	(*ctx.ObjCoords)[inputId] = fontRect
+
+	return fontRect
 }
 
 func (ctx *Ctx) windowRect() g143.Rect {

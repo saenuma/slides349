@@ -15,12 +15,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-func GetDefaultFontPath() string {
-	fontPath := filepath.Join(os.TempDir(), "v349_font.ttf")
-	os.WriteFile(fontPath, DefaultFont, 0777)
-	return fontPath
-}
-
 func GetRootPath() (string, error) {
 	hd, err := os.UserHomeDir()
 	if err != nil {
