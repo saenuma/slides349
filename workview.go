@@ -124,13 +124,25 @@ func DrawWorkView(window *glfw.Window, slide int) {
 		SlideThumbnailRect := g143.NewRect(slideX, currentY, sTW, sTH)
 		ObjCoords[1000+displayI] = SlideThumbnailRect
 
-		currentY += 10 + int(math.Ceil(WorkAreaHeight*0.15))
+		currentY += int(math.Ceil(WorkAreaHeight * 0.15))
+
+		// draw reorder buttons
+		if i == CurrentSlide && TotalSlides > 1 {
+			sUBR := theCtx.drawButtonB(SlidesUpBtn, slideX+30, currentY, "up", "#fff", "#666")
+			sDBX := nextHorizontalX(sUBR, 10)
+			theCtx.drawButtonB(SlidesDownBtn, sDBX, currentY, "down", "#fff", "#666")
+			currentY += 30
+		}
+
+		currentY += 5
+
 	}
 
 	// write totalSlides
+	baseBarY := CanvasRect.OriginY + slideHeight + 30
 	theCtx.ggCtx.SetHexColor(fontColor)
-	theCtx.ggCtx.DrawString(fmt.Sprintf("Total Slides: %d", TotalSlides), float64(slideX),
-		float64(slideHeight)+FontSize+30+float64(CanvasRect.OriginY))
+	tSL := fmt.Sprintf("Total Slides: %d", TotalSlides)
+	theCtx.ggCtx.DrawString(tSL, float64(slideX), float64(baseBarY)+FontSize)
 
 	// send the frame to glfw window
 	g143.DrawImage(wWidth, wHeight, theCtx.ggCtx.Image(), theCtx.windowRect())
@@ -462,6 +474,25 @@ func workViewMouseCallback(window *glfw.Window, button glfw.MouseButton, action 
 		window.SetMouseButtonCallback(fontPickerMouseCallback)
 		window.SetCursorPosCallback(getHoverCB(&FDObjCoords))
 		window.SetScrollCallback(nil)
+
+	case SlidesUpBtn:
+		if CurrentSlide != 0 {
+			currentSlideObj := SlideFormat[CurrentSlide]
+			topSlideObj := SlideFormat[CurrentSlide-1]
+			SlideFormat[CurrentSlide] = topSlideObj
+			SlideFormat[CurrentSlide-1] = currentSlideObj
+			CurrentSlide -= 1
+			DrawWorkView(window, CurrentSlide)
+		}
+	case SlidesDownBtn:
+		if CurrentSlide != TotalSlides {
+			currentSlideObj := SlideFormat[CurrentSlide]
+			topSlideObj := SlideFormat[CurrentSlide+1]
+			SlideFormat[CurrentSlide] = topSlideObj
+			SlideFormat[CurrentSlide+1] = currentSlideObj
+			CurrentSlide += 1
+			DrawWorkView(window, CurrentSlide)
+		}
 	}
 
 	// for generated buttons

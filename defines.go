@@ -15,12 +15,15 @@ const (
 	WorkAreaWidth  = 1366
 	WorkAreaHeight = 768
 
-	TextTool     = 31
-	ImageTool    = 32
-	AddSlideBtn  = 34
-	MoveTool     = 35
-	BackBtn      = 36
-	CanvasWidget = 39
+	TextTool         = 31
+	ImageTool        = 32
+	AddSlideBtn      = 34
+	MoveTool         = 35
+	BackBtn          = 36
+	CanvasWidget     = 39
+	SlidesOrderCheck = 41
+	SlidesUpBtn      = 42
+	SlidesDownBtn    = 43
 
 	ColorPickerBtn = 312
 	MinusSizeBtn   = 314
@@ -84,6 +87,8 @@ var (
 	ToMoveIndex int = -1
 
 	FDObjCoords map[int]g143.Rect
+
+	SlidesOrderChecked = false
 )
 
 type DrawnType int
