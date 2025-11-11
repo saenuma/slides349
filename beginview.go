@@ -15,29 +15,20 @@ func DrawBeginView(window *glfw.Window) {
 
 	theCtx := New2dCtx(wWidth, wHeight, &ProjObjCoords)
 
-	fontPath := getFontPath(1)
-	theCtx.ggCtx.LoadFontFace(fontPath, 30)
+	theCtx.setFontSize(25)
+	pnIRect := theCtx.drawInputB(PROJ_NameInput, 30, 20, 420, "enter project name", false)
+	pnBtnX := nextX(pnIRect, 30)
+	nPRS := theCtx.drawButtonB(PROJ_NewProject, pnBtnX, 20, "New Project", fontColor, "#BBD0E7")
+	oWDBX := nextX(nPRS, 120)
+	theCtx.drawButtonB(PROJ_OpenWDBtn, oWDBX, 20, "Open Folder", "#fff", "#859EB8")
 
-	theCtx.ggCtx.SetHexColor(fontColor)
-	theCtx.ggCtx.DrawString("New Project", 20, 10+30)
+	borderY := nextY(pnIRect, 10)
 
-	theCtx.ggCtx.LoadFontFace(fontPath, 20)
-	pnIRect := theCtx.drawInputB(PROJ_NameInput, 20, 60, 420, "enter project name", false)
-	pnBtnX := nextHorizontalX(pnIRect, 30)
-	nPRS := theCtx.drawButtonB(PROJ_NewProject, pnBtnX, 60, "New Project", fontColor, "#B3AE97")
-	oWDBX := nextHorizontalX(nPRS, 40)
-	theCtx.drawButtonA(PROJ_OpenWDBtn, oWDBX, 10, "Open Working Directory", "#fff", "#56845A", "#56845A")
-
-	// second row border
-	borderY := nextVerticalY(pnIRect, 10)
-	theCtx.ggCtx.SetHexColor("#999")
-	theCtx.ggCtx.DrawRoundedRectangle(10, float64(borderY), float64(wWidth)-20, 2, 2)
-	theCtx.ggCtx.Fill()
-
-	theCtx.ggCtx.LoadFontFace(fontPath, 30)
+	theCtx.setFontSize(30)
 	theCtx.ggCtx.SetHexColor(fontColor)
 	theCtx.ggCtx.DrawString("Continue Projects", 20, float64(borderY)+12+30)
-	theCtx.ggCtx.LoadFontFace(fontPath, 20)
+
+	theCtx.setFontSize(20)
 
 	projectFiles := GetProjectFiles()
 	currentX := 40

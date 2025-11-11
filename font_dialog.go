@@ -40,9 +40,9 @@ func drawFontPicker(window *glfw.Window, currentFrame image.Image) {
 
 	// Font Previews
 	font1RS := theCtx.drawAFont(FD_FontRegular, aFLX, aFLY+40, "regular")
-	f2Y := nextVerticalY(font1RS, 20)
+	f2Y := nextY(font1RS, 20)
 	font2RS := theCtx.drawAFont(FD_FontBold, aFLX, f2Y, "bold")
-	f3Y := nextVerticalY(font2RS, 20)
+	f3Y := nextY(font2RS, 20)
 	theCtx.drawAFont(FD_FontRough, aFLX, f3Y, "rough")
 
 	// send the frame to glfw window

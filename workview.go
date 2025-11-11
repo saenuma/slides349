@@ -24,40 +24,46 @@ func DrawWorkView(window *glfw.Window, slide int) {
 	wWidth, wHeight := window.GetSize()
 	theCtx := New2dCtx(wWidth, wHeight, &ObjCoords)
 
+	theCtx.setFontSize(25)
 	// top panel
-	bBRect := theCtx.drawButtonA(BackBtn, 50, 10, "Back", "#fff", "#845B5B", "#845B5B")
-	aTX := nextHorizontalX(bBRect, 40)
-	aSRS := theCtx.drawButtonA(AddSlideBtn, aTX, 10, "Add Slide", fontColor, "#D9D5B0", "#D9D5B0")
-	tTX := nextHorizontalX(aSRS, 20)
-	tTRS := theCtx.drawButtonA(TextTool, tTX, 10, "Text", fontColor, "#D9D5B0", "#D9D5B0")
-	iTX := nextHorizontalX(tTRS, 20)
-	iTRS := theCtx.drawButtonA(ImageTool, iTX, 10, "Image", fontColor, "#D9D5B0", "#D9D5B0")
-	mTX := nextHorizontalX(iTRS, 20)
-	mTRS := theCtx.drawButtonA(MoveTool, mTX, 10, "Move", fontColor, "#D9D5B0", "#D9D5B0")
-	dividerX := nextHorizontalX(mTRS, 20)
-	theCtx.ggCtx.SetHexColor("#444")
-	theCtx.ggCtx.DrawRectangle(float64(dividerX), 10, 2, float64(tTRS.Height))
-	theCtx.ggCtx.Fill()
+	bBRect := theCtx.drawButtonB(BackBtn, 50, 10, "Back", fontColor, "#BBD0E7")
+	aTX := nextX(bBRect, 40)
+	aSRS := theCtx.drawButtonB(AddSlideBtn, aTX, 10, "Add Slide", "#fff", "#6B8EB3")
+	tTX := nextX(aSRS, 80)
+	tTRS := theCtx.drawButtonA(TextTool, tTX, 10, "Text", "#fff", "#6B8EB3", false)
+	iTX := nextX(tTRS, 10)
+	iTRS := theCtx.drawButtonA(ImageTool, iTX, 10, "Image", "#fff", "#6B8EB3", false)
+	mTX := nextX(iTRS, 10)
+	mTRS := theCtx.drawButtonA(MoveTool, mTX, 10, "Move", "#fff", "#6B8EB3", false)
 
 	// pencil extras
-	mSRS := theCtx.drawButtonB(MinusSizeBtn, dividerX+20, 10+5, "--", "#fff", "#aaa")
-	tSIX := nextHorizontalX(mSRS, 5)
+	mSX := nextX(mTRS, 80)
+	mSRS := theCtx.drawButtonB(MinusSizeBtn, mSX, 10+5, "--", fontColor, "#BBD0E7")
+	tSIX := nextX(mSRS, 5)
 
 	size := InputsState["size"]
 	tSIRS := theCtx.drawInput(DrawnSizeInput, tSIX, 10, size)
-	pSX := nextHorizontalX(tSIRS, 15)
-	pSRS := theCtx.drawButtonB(PlusSizeBtn, pSX, 10+5, "+", "#fff", "#aaa")
-	tCX := nextHorizontalX(pSRS, 20)
+	pSX := nextX(tSIRS, 15)
+	pSRS := theCtx.drawButtonB(PlusSizeBtn, pSX, 10+5, "+", fontColor, "#BBD0E7")
+	tCX := nextX(pSRS, 20)
 	selectedColor := InputsState["color"]
 	cPBRS := theCtx.drawColorBox(ColorPickerBtn, tCX, 10+5, tTRS.Height-15, selectedColor)
-	fCX := nextHorizontalX(cPBRS, 20)
+	fCX := nextX(cPBRS, 20)
 	selectedFontClass := InputsState["font"]
 	theCtx.drawInput(FontNameInput, fCX, 10, selectedFontClass)
 
+	// clear all tools
+	for _, toolId := range []int{TextTool, ImageTool, MoveTool} {
+		toolRS := ObjCoords[toolId]
+		theCtx.drawButtonA(toolId, toolRS.OriginX, toolRS.OriginY, toolNames[toolId],
+			"#fff", "#6B8EB3", false)
+	}
 	// place indicator on activeTool
 	activeToolRS := ObjCoords[activeTool]
 	theCtx.drawButtonA(activeTool, activeToolRS.OriginX, activeToolRS.OriginY, toolNames[activeTool],
-		fontColor, "#D9D5B0", "#AEAC9C")
+		"#fff", "#6B8EB3", true)
+
+	theCtx.setFontSize(20)
 
 	genRange := func(a, b, total int) []int {
 		ret := make([]int, 0)
@@ -108,8 +114,8 @@ func DrawWorkView(window *glfw.Window, slide int) {
 
 		// draw indicator for current slide
 		if i == CurrentSlide {
-			theCtx.ggCtx.SetHexColor("#BE7171")
-			theCtx.ggCtx.DrawRectangle(float64(slideX)+WorkAreaWidth*0.15+4, float64(currentY), 10, WorkAreaHeight*0.15)
+			theCtx.ggCtx.SetHexColor("#9DB6D1")
+			theCtx.ggCtx.DrawRectangle(float64(slideX)+WorkAreaWidth*0.15+8, float64(currentY), 5, WorkAreaHeight*0.15)
 			theCtx.ggCtx.Fill()
 		}
 
@@ -128,9 +134,9 @@ func DrawWorkView(window *glfw.Window, slide int) {
 
 		// draw reorder buttons
 		if i == CurrentSlide && TotalSlides > 1 {
-			sUBR := theCtx.drawButtonB(SlidesUpBtn, slideX+30, currentY, "up", "#fff", "#666")
-			sDBX := nextHorizontalX(sUBR, 10)
-			theCtx.drawButtonB(SlidesDownBtn, sDBX, currentY, "down", "#fff", "#666")
+			sUBR := theCtx.drawButtonB(SlidesUpBtn, slideX+30, currentY, "up", "#fff", "#5F699F")
+			sDBX := nextX(sUBR, 10)
+			theCtx.drawButtonB(SlidesDownBtn, sDBX, currentY, "down", "#fff", "#5F699F")
 			currentY += 30
 		}
 
@@ -280,18 +286,20 @@ func workViewMouseCallback(window *glfw.Window, button glfw.MouseButton, action 
 		activeTool = widgetCode
 
 		theCtx := Continue2dCtx(CurrentWindowFrame, &ObjCoords)
+		theCtx.setFontSize(25)
 
 		// clear all tools
 		for _, toolId := range []int{TextTool, ImageTool, MoveTool} {
 			toolRS := ObjCoords[toolId]
 			theCtx.drawButtonA(toolId, toolRS.OriginX, toolRS.OriginY, toolNames[toolId],
-				fontColor, "#D9D5B0", "#D9D5B0")
+				"#fff", "#6B8EB3", false)
 		}
 		// place indicator on activeTool
 		activeToolRS := ObjCoords[activeTool]
 		theCtx.drawButtonA(activeTool, activeToolRS.OriginX, activeToolRS.OriginY, toolNames[activeTool],
-			fontColor, "#D9D5B0", "#AEAC9C")
+			"#fff", "#6B8EB3", true)
 
+		theCtx.setFontSize(20)
 		// send the frame to glfw window
 		g143.DrawImage(wWidth, wHeight, theCtx.ggCtx.Image(), theCtx.windowRect())
 		window.SwapBuffers()

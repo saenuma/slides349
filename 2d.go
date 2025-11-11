@@ -8,10 +8,11 @@ import (
 )
 
 type Ctx struct {
-	WindowWidth  int
-	WindowHeight int
-	ggCtx        *gg.Context
-	ObjCoords    *map[int]g143.Rect
+	WindowWidth     int
+	WindowHeight    int
+	ggCtx           *gg.Context
+	ObjCoords       *map[int]g143.Rect
+	CurrentFontSize int
 }
 
 func New2dCtx(wWidth, wHeight int, objCoords *map[int]g143.Rect) Ctx {
@@ -25,13 +26,13 @@ func New2dCtx(wWidth, wHeight int, objCoords *map[int]g143.Rect) Ctx {
 
 	// load font
 	fontPath := getFontPath(1)
-	err := ggCtx.LoadFontFace(fontPath, FontSize)
+	err := ggCtx.LoadFontFace(fontPath, 20)
 	if err != nil {
 		panic(err)
 	}
 
 	ctx := Ctx{WindowWidth: wWidth, WindowHeight: wHeight, ggCtx: ggCtx,
-		ObjCoords: objCoords}
+		ObjCoords: objCoords, CurrentFontSize: 20}
 	return ctx
 }
 
@@ -40,32 +41,40 @@ func Continue2dCtx(img image.Image, objCoords *map[int]g143.Rect) Ctx {
 
 	// load font
 	fontPath := getFontPath(1)
-	err := ggCtx.LoadFontFace(fontPath, FontSize)
+	err := ggCtx.LoadFontFace(fontPath, 20)
 	if err != nil {
 		panic(err)
 	}
 
 	ctx := Ctx{WindowWidth: img.Bounds().Dx(), WindowHeight: img.Bounds().Dy(), ggCtx: ggCtx,
-		ObjCoords: objCoords}
+		ObjCoords: objCoords, CurrentFontSize: 20}
 	return ctx
 }
 
-func (ctx *Ctx) drawButtonA(btnId, originX, originY int, text, textColor, bgColor, circleColor string) g143.Rect {
+func (ctx *Ctx) setFontSize(fontSize int) {
+	// load font
+	fontPath := getFontPath(1)
+	err := ctx.ggCtx.LoadFontFace(fontPath, float64(fontSize))
+	if err != nil {
+		panic(err)
+	}
+
+	ctx.CurrentFontSize = fontSize
+}
+
+func (ctx *Ctx) drawButtonB(btnId, originX, originY int, text, textColor, bgColor string) g143.Rect {
 	// draw bounding rect
 	textW, textH := ctx.ggCtx.MeasureString(text)
-	width, height := textW+80, textH+30
+	width, height := textW+float64(ctx.CurrentFontSize), textH+float64(ctx.CurrentFontSize)
 	ctx.ggCtx.SetHexColor(bgColor)
 	ctx.ggCtx.DrawRectangle(float64(originX), float64(originY), float64(width), float64(height))
 	ctx.ggCtx.Fill()
 
+	textOffsetY := float64(ctx.CurrentFontSize) / 5
+	textOffsetX := float64(ctx.CurrentFontSize) / 2
 	// draw text
 	ctx.ggCtx.SetHexColor(textColor)
-	ctx.ggCtx.DrawString(text, float64(originX)+20, float64(originY)+FontSize+10)
-
-	// draw circle
-	ctx.ggCtx.SetHexColor(circleColor)
-	ctx.ggCtx.DrawCircle(float64(originX)+width-30, float64(originY)+(height/2), 10)
-	ctx.ggCtx.Fill()
+	ctx.ggCtx.DrawString(text, float64(originX+int(textOffsetX)), float64(originY+ctx.CurrentFontSize)+textOffsetY)
 
 	// save dimensions
 	btnARect := g143.NewRect(originX, originY, int(width), int(height))
@@ -73,23 +82,33 @@ func (ctx *Ctx) drawButtonA(btnId, originX, originY int, text, textColor, bgColo
 	return btnARect
 }
 
-func (ctx *Ctx) drawButtonB(btnId, originX, originY int, text, textColor, bgColor string) g143.Rect {
+func (ctx *Ctx) drawButtonA(btnId, originX, originY int, text, textColor, bgColor string, active bool) g143.Rect {
 	// draw bounding rect
 	textW, textH := ctx.ggCtx.MeasureString(text)
-	width, height := textW+20, textH+15
+	width, height := textW+float64(ctx.CurrentFontSize), textH+float64(ctx.CurrentFontSize)
 	ctx.ggCtx.SetHexColor(bgColor)
 	ctx.ggCtx.DrawRectangle(float64(originX), float64(originY), float64(width), float64(height))
 	ctx.ggCtx.Fill()
 
+	textOffsetY := float64(ctx.CurrentFontSize) / 5
+	textOffsetX := float64(ctx.CurrentFontSize) / 2
 	// draw text
 	ctx.ggCtx.SetHexColor(textColor)
-	ctx.ggCtx.DrawString(text, float64(originX)+10, float64(originY)+FontSize)
+	ctx.ggCtx.DrawString(text, float64(originX+int(textOffsetX)), float64(originY+ctx.CurrentFontSize)+textOffsetY)
+
+	if active {
+		ctx.ggCtx.SetHexColor(bgColor)
+	} else {
+		ctx.ggCtx.SetHexColor("#fff")
+	}
+
+	// draw rect
+	ctx.ggCtx.DrawRectangle(float64(originX), float64(originY)+height+5, width, 3)
+	ctx.ggCtx.Fill()
 
 	// save dimensions
 	btnARect := g143.NewRect(originX, originY, int(width), int(height))
-	if btnId != 0 {
-		(*ctx.ObjCoords)[btnId] = btnARect
-	}
+	(*ctx.ObjCoords)[btnId] = btnARect
 	return btnARect
 }
 
@@ -125,9 +144,8 @@ func (ctx *Ctx) drawInput(inputId, originX, originY int, writtenStr string) g143
 	ctx.ggCtx.DrawString(writtenStr, float64(originX+5), float64(originY)+FontSize+5)
 	return entryRect
 }
-
 func (ctx *Ctx) drawInputB(inputId, originX, originY, inputWidth int, placeholder string, isDefault bool) g143.Rect {
-	height := 30
+	height := float64(ctx.CurrentFontSize) * 1.8
 	ctx.ggCtx.SetHexColor(fontColor)
 	ctx.ggCtx.DrawRectangle(float64(originX), float64(originY), float64(inputWidth), float64(height))
 	ctx.ggCtx.Fill()
@@ -136,15 +154,17 @@ func (ctx *Ctx) drawInputB(inputId, originX, originY, inputWidth int, placeholde
 	ctx.ggCtx.DrawRectangle(float64(originX)+2, float64(originY)+2, float64(inputWidth)-4, float64(height)-4)
 	ctx.ggCtx.Fill()
 
-	entryRect := g143.Rect{Width: inputWidth, Height: height, OriginX: originX, OriginY: originY}
+	entryRect := g143.Rect{Width: inputWidth, Height: int(height), OriginX: originX, OriginY: originY}
 	(*ctx.ObjCoords)[inputId] = entryRect
 
 	if isDefault {
 		ctx.ggCtx.SetHexColor("#444")
-		ctx.ggCtx.DrawString(placeholder, float64(originX+15), float64(originY)+FontSize)
+		ctx.ggCtx.DrawString(placeholder, float64(originX+ctx.CurrentFontSize/3),
+			float64(originY+ctx.CurrentFontSize/5)+float64(ctx.CurrentFontSize))
 	} else {
 		ctx.ggCtx.SetHexColor("#aaa")
-		ctx.ggCtx.DrawString(placeholder, float64(originX+15), float64(originY)+FontSize)
+		ctx.ggCtx.DrawString(placeholder, float64(originX+ctx.CurrentFontSize/3),
+			float64(originY+ctx.CurrentFontSize/5)+float64(ctx.CurrentFontSize))
 	}
 	return entryRect
 }
@@ -176,10 +196,10 @@ func (ctx *Ctx) windowRect() g143.Rect {
 	return g143.NewRect(0, 0, ctx.WindowWidth, ctx.WindowHeight)
 }
 
-func nextHorizontalX(aRect g143.Rect, margin int) int {
+func nextX(aRect g143.Rect, margin int) int {
 	return aRect.OriginX + aRect.Width + margin
 }
 
-func nextVerticalY(aRect g143.Rect, margin int) int {
+func nextY(aRect g143.Rect, margin int) int {
 	return aRect.OriginY + aRect.Height + margin
 }
