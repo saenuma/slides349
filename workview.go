@@ -47,7 +47,7 @@ func DrawWorkView(window *glfw.Window, slide int) {
 	pSRS := theCtx.drawButtonB(PlusSizeBtn, pSX, 10+5, "+", fontColor, "#BBD0E7")
 	tCX := nextX(pSRS, 20)
 	selectedColor := InputsState["color"]
-	cPBRS := theCtx.drawColorBox(ColorPickerBtn, tCX, 10+5, tTRS.Height-15, selectedColor)
+	cPBRS := theCtx.drawColorBox(ColorPickerBtn, tCX, 10+5, tTRS.Height, selectedColor)
 	fCX := nextX(cPBRS, 20)
 	selectedFontClass := InputsState["font"]
 	theCtx.drawInput(FontNameInput, fCX, 10, selectedFontClass)
@@ -92,7 +92,7 @@ func DrawWorkView(window *glfw.Window, slide int) {
 	// canvas
 	canvasX := int(math.Ceil(WorkAreaWidth*0.15)) + 10 + FontSize + 5 + 30
 
-	theCtx.ggCtx.SetHexColor(fontColor)
+	theCtx.ggCtx.SetHexColor("#9DB6D1")
 	theCtx.ggCtx.DrawRectangle(float64(canvasX), 80, WorkAreaWidth*0.8, WorkAreaHeight*0.8)
 	theCtx.ggCtx.Fill()
 
@@ -108,7 +108,7 @@ func DrawWorkView(window *glfw.Window, slide int) {
 		theCtx.ggCtx.DrawString(fmt.Sprintf("%d", displayI), 10, float64(currentY+FontSize))
 
 		// draw border rectangle
-		theCtx.ggCtx.SetHexColor(fontColor)
+		theCtx.ggCtx.SetHexColor("#9DB6D1")
 		theCtx.ggCtx.DrawRectangle(float64(slideX), float64(currentY), WorkAreaWidth*0.15, WorkAreaHeight*0.15+1)
 		theCtx.ggCtx.Fill()
 

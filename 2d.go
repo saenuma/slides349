@@ -113,12 +113,8 @@ func (ctx *Ctx) drawButtonA(btnId, originX, originY int, text, textColor, bgColo
 }
 
 func (ctx *Ctx) drawColorBox(inputId, originX, originY, width int, pickedColor string) g143.Rect {
-	ctx.ggCtx.SetHexColor("#000")
-	ctx.ggCtx.DrawRectangle(float64(originX), float64(originY), float64(width), float64(width))
-	ctx.ggCtx.Fill()
-
 	ctx.ggCtx.SetHexColor(pickedColor)
-	ctx.ggCtx.DrawRectangle(float64(originX)+2, float64(originY)+2, float64(width)-4, float64(width)-4)
+	ctx.ggCtx.DrawRectangle(float64(originX), float64(originY), float64(width), float64(width))
 	ctx.ggCtx.Fill()
 
 	colorBoxRect := g143.NewRect(originX, originY, width, width)
