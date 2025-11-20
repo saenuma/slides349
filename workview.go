@@ -11,7 +11,7 @@ import (
 	g143 "github.com/bankole7782/graphics143"
 	"github.com/fogleman/gg"
 	"github.com/go-gl/glfw/v3.3/glfw"
-	"github.com/kovidgoyal/imaging"
+	"github.com/disintegration/imaging"
 )
 
 func DrawWorkView(window *glfw.Window, slide int) {

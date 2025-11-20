@@ -11,7 +11,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/kovidgoyal/imaging"
+	"github.com/disintegration/imaging"
 	"github.com/pkg/errors"
 )
 
